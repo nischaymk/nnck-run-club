@@ -1,0 +1,190 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Welcome to NNCK RUN CLUB - Run Together, Grow Together{% endblock %}
+
+{% block content %}
+<div class="container py-5 my-auto">
+    <div class="row align-items-center justify-content-center min-vh-75 g-5">
+        
+        <!-- Left Side: Brand Showcase -->
+        <div class="col-lg-6 text-center text-lg-start">
+            <div class="d-inline-flex align-items-center gap-2 p-2 px-3 rounded-pill mb-4" style="background: rgba(253, 187, 17, 0.1); border: 1px solid rgba(253, 187, 17, 0.25);">
+                <span class="badge rounded-pill bg-warning text-dark fw-bold">Official Portal</span>
+                <span class="text-light small fw-semibold">NNCK Community Training</span>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-4 mb-4">
+                <img src="{% static 'images/logo.jpg' %}" alt="NNCK Run Club Logo" class="img-fluid rounded-circle shadow-lg border border-3 border-warning" style="width: 140px; height: 140px; object-fit: cover; animation: pulse 3s infinite ease-in-out;">
+                <div>
+                    <h1 class="display-4 fw-black mb-1 brand-badge tracking-tight">NNCK</h1>
+                    <h3 class="text-white fw-bold mb-0">RUN CLUB</h3>
+                </div>
+            </div>
+
+            <h2 class="h3 fw-bold text-white mb-3">
+                Run Together • <span style="background: var(--nnck-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Grow Together</span>
+            </h2>
+
+            <p class="lead text-secondary mb-4" style="max-width: 520px; font-size: 1.05rem; line-height: 1.6;">
+                Welcome to NNCK Run Club. Access your daily workout regimens, preview upcoming training sessions, and track your running journey together with our community.
+            </p>
+
+            <!-- Quick Link to Coach/Admin Portal -->
+            <div class="p-3 rounded-3 bg-dark border border-secondary d-inline-flex align-items-center gap-3 mt-2 text-start" style="max-width: 480px;">
+                <div class="avatar-circle" style="width: 42px; height: 42px; font-size: 1.2rem; flex-shrink: 0;">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <div>
+                    <div class="text-white fw-bold small">Club Coaches & Administrators</div>
+                    <div class="text-secondary small">Head to the <a href="/admin/" class="text-warning text-decoration-none fw-semibold">Admin Portal</a> to manage runners, workouts, and system settings.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Auth Box (Login & Register Tabs) -->
+        <div class="col-lg-5 col-md-8">
+            <div class="card card-nnck p-4 p-md-5 border-secondary shadow-lg">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo.jpg' %}" alt="NNCK" width="60" height="60" class="rounded-circle mb-2 border border-warning" style="object-fit: cover;">
+                    <h3 class="text-white fw-bold mb-1">Welcome Runners</h3>
+                    <p class="text-muted small mb-0">Sign in to your dashboard or create your account</p>
+                </div>
+
+                <!-- Nav Tabs -->
+                <ul class="nav nav-pills nav-fill mb-4 bg-dark p-1 rounded-3" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not show_register %}active bg-warning text-dark fw-bold{% else %}text-light{% endif %} rounded-2" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if show_register %}active bg-warning text-dark fw-bold{% else %}text-light{% endif %} rounded-2" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab">
+                            <i class="bi bi-person-plus me-1"></i> Register
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="authTabsContent">
+                    
+                    <!-- Login Form Tab -->
+                    <div class="tab-pane fade {% if not show_register %}show active{% endif %}" id="login-panel" role="tabpanel">
+                        <form method="POST" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">USERNAME</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="username" class="form-control bg-dark border-secondary text-white" placeholder="Enter username" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label text-secondary small fw-bold mb-0">PASSWORD</label>
+                                    <a href="{% url 'password_reset' %}" class="text-warning small text-decoration-none fw-semibold">
+                                        <i class="bi bi-question-circle me-1"></i>Forgot Password?
+                                    </a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock"></i></span>
+                                    <input type="password" name="password" class="form-control bg-dark border-secondary text-white" placeholder="••••••••" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-nnck-gradient w-100 py-2 fs-6 mb-3">
+                                Sign In to Dashboard <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+
+                            <div class="d-flex justify-content-between align-items-center text-muted small mt-3">
+                                <span>Coach / Staff member?</span>
+                                <a href="/admin/" class="text-warning text-decoration-none fw-semibold">
+                                    <i class="bi bi-shield-lock me-1"></i>Admin Portal
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Register Form Tab -->
+                    <div class="tab-pane fade {% if show_register %}show active{% endif %}" id="register-panel" role="tabpanel">
+                        <form method="POST" action="{% url 'register' %}">
+                            {% csrf_token %}
+                            
+                            <!-- Display Detailed Form Validation Errors if Any -->
+                            {% if register_form.errors %}
+                            <div class="alert alert-danger py-2 small mb-3 border-0">
+                                <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Please resolve the following:</div>
+                                <ul class="mb-0 ps-3">
+                                    {% for field in register_form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in register_form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-bold">FIRST NAME</label>
+                                    {{ register_form.first_name }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-bold">LAST NAME</label>
+                                    {{ register_form.last_name }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">USERNAME</label>
+                                {{ register_form.username }}
+                                <div class="form-text text-muted small">Can contain letters, numbers, and underscores (e.g. nischay_mk).</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">EMAIL ADDRESS</label>
+                                {{ register_form.email }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">PHONE NUMBER (OPTIONAL)</label>
+                                {{ register_form.phone }}
+                            </div>
+
+                            <div class="row g-2 mb-4">
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-bold">PASSWORD</label>
+                                    {{ register_form.password }}
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-secondary small fw-bold">CONFIRM</label>
+                                    {{ register_form.confirm_password }}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-nnck-gradient w-100 py-2 fs-6 mb-3">
+                                Complete Registration <i class="bi bi-check-circle ms-1"></i>
+                            </button>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 187, 17, 0.4); }
+    70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(253, 187, 17, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(253, 187, 17, 0); }
+}
+</style>
+{% endblock %}
+

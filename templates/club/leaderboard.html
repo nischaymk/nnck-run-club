@@ -1,0 +1,122 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Weekly Leaderboard - NNCK Run Club{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header Banner -->
+    <!-- Header Banner -->
+    <div class="card card-nnck p-3 p-md-4 mb-3 border-warning border-opacity-50" style="background: linear-gradient(135deg, rgba(20, 23, 29, 0.98) 0%, rgba(40, 28, 18, 0.98) 100%);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark fw-bold">WEEKLY LEADERBOARD</span>
+                    <span class="badge bg-dark border border-secondary text-light">{{ this_week_start|date:"d M" }} - {{ end_of_week|date:"d M Y" }}</span>
+                </div>
+                <h2 class="text-white fw-bold mb-0">Runner Mileage Standings</h2>
+            </div>
+            <div class="text-md-end">
+                <span class="text-secondary small fw-bold">CLUB TOTAL: </span>
+                <span class="text-warning fw-bold fs-4">{{ club_total_week_km|floatformat:1 }} km</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Week Filter & Quick Navigation -->
+    <div class="card card-nnck p-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <!-- Week Quick Buttons -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="?date={{ prev_week|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary text-light">
+                    <i class="bi bi-chevron-left me-1"></i> Prev Week
+                </a>
+                <a href="?date={{ today|date:'Y-m-d' }}" class="btn btn-sm {% if is_current_week %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary text-light{% endif %}">
+                    This Week
+                </a>
+                <a href="?date={{ next_week|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary text-light">
+                    Next Week <i class="bi bi-chevron-right ms-1"></i>
+                </a>
+            </div>
+
+            <!-- Date Picker for specific week -->
+            <form method="GET" class="d-flex align-items-center gap-2">
+                <label class="text-secondary small fw-semibold text-nowrap mb-0 d-none d-sm-inline">Select Date:</label>
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-calendar3"></i></span>
+                    <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.submit()" class="form-control bg-dark border-secondary text-white" style="max-width: 155px;">
+                </div>
+                <noscript><button type="submit" class="btn btn-sm btn-warning">Filter</button></noscript>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaderboard List Format (Optimized for Mobile Screens) -->
+    <div class="card card-nnck p-2 p-md-4">
+        {% if leaderboard %}
+            <div class="list-group list-group-flush bg-transparent">
+                {% for entry in leaderboard %}
+                <div class="list-group-item bg-transparent text-white border-secondary p-3 mb-2 rounded-3 {% if entry.athlete == user %}border-warning bg-dark{% else %}bg-dark bg-opacity-50{% endif %}">
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        
+                        <!-- Left: Simple Rank Number & Athlete Info -->
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Simple Rank Number (Clean & Minimalist - No Gold/Silver/Bronze) -->
+                            <div class="text-center" style="min-width: 42px;">
+                                <span class="fs-5 fw-bold font-monospace {% if entry.athlete == user %}text-warning{% else %}text-light{% endif %}">#{{ entry.rank }}</span>
+                            </div>
+
+                            <!-- Avatar & Name -->
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'runner_detail' entry.athlete.id %}">
+                                    {% if entry.athlete.profile.profile_photo %}
+                                        <img src="{{ entry.athlete.profile.profile_photo.url }}" alt="{{ entry.athlete.username }}" width="46" height="46" class="rounded-circle border border-warning" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="avatar-circle" style="width: 46px; height: 46px; font-size: 1rem;">
+                                            {{ entry.athlete.first_name|first|default:entry.athlete.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                </a>
+                                <div>
+                                    <a href="{% url 'runner_detail' entry.athlete.id %}" class="text-white text-decoration-none fw-bold mb-0 d-block">
+                                        {{ entry.athlete.get_full_name|default:entry.athlete.username }}
+                                        {% if entry.athlete == user %}<span class="badge bg-warning text-dark ms-1 small">You</span>{% endif %}
+                                    </a>
+                                    <span class="text-secondary small d-none d-sm-inline">
+                                        Target: {{ entry.athlete.profile.target_race|default:"General Running" }} &bull; 
+                                    </span>
+                                    <span class="text-secondary small">{{ entry.week_runs }} workout{{ entry.week_runs|pluralize }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Mileage Stats & Profile Button -->
+                        <div class="text-end d-flex align-items-center gap-3">
+                            <div>
+                                <div class="text-warning fw-black fs-4 line-height-1">
+                                    {{ entry.week_km|floatformat:1 }} <span class="fs-6 text-light fw-normal">km</span>
+                                </div>
+                                <div class="text-muted small" style="font-size: 0.72rem;">this week</div>
+                            </div>
+
+                            <a href="{% url 'runner_detail' entry.athlete.id %}" class="btn btn-sm btn-outline-secondary text-light d-none d-md-inline-block">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-secondary">
+                <i class="bi bi-trophy display-4"></i>
+                <h5 class="text-white mt-2">No weekly mileage logged yet</h5>
+                <p class="small">Upload your workout screenshot proof to claim the #1 spot on this week's leaderboard!</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

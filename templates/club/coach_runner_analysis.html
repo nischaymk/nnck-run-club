@@ -1,0 +1,135 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Runner Analysis: {{ runner.get_full_name|default:runner.username }} - NNCK Coach{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Runner Profile Header -->
+    <div class="card card-nnck p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                {% if runner_profile.profile_photo %}
+                    <img src="{{ runner_profile.profile_photo.url }}" alt="Runner" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;">
+                {% else %}
+                    <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 1.8rem;">
+                        {{ runner.first_name|first|default:runner.username|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h3 class="text-white fw-bold mb-0">{{ runner.get_full_name|default:runner.username }}</h3>
+                    <span class="badge bg-dark border border-secondary text-info">@{{ runner.username }}</span>
+                </div>
+                <p class="text-secondary small mb-1">
+                    <i class="bi bi-bullseye text-warning me-1"></i> Target: <strong class="text-light">{{ runner_profile.target_race|default:"Not specified" }}</strong>
+                    &bull; Target Pace: <strong class="text-light">{{ runner_profile.target_pace|default:"Not set" }}</strong>
+                    &bull; Target Weekly: <strong class="text-light">{{ runner_profile.weekly_mileage_target }} km</strong>
+                </p>
+                <div class="text-secondary small">
+                    {{ runner_profile.bio|default:"No bio provided" }}
+                </div>
+            </div>
+            <div class="col-lg-auto d-flex gap-2">
+                <a href="{% url 'coach_assign_workout' %}?runner_id={{ runner.id }}" class="btn btn-nnck-gradient btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i> Upload Workout
+                </a>
+                <a href="{% url 'coach_portal' %}" class="btn btn-outline-secondary btn-sm">
+                    Back to Portal
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Runner KPI Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">THIS WEEK VERIFIED</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="text-white fw-bold mb-0">{{ week_km|floatformat:1 }}</h3>
+                    <span class="text-warning">km</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">TOTAL COMPLETED DISTANCE</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="text-white fw-bold mb-0">{{ total_km|floatformat:1 }}</h3>
+                    <span class="text-success">km</span>
+                </div>
+                <span class="text-muted small">Credited on profile</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-12">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">VERIFIED SESSIONS</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="text-white fw-bold mb-0">{{ submissions.count }}</h3>
+                    <span class="text-info">submissions</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submissions & Proofs Table -->
+    <div class="card card-nnck p-4">
+        <h4 class="text-white fw-bold mb-3"><i class="bi bi-camera-fill text-warning me-2"></i> Submissions & Proofs from {{ runner.first_name|default:runner.username }}</h4>
+        
+        {% if submissions %}
+            <div class="d-flex flex-column gap-3">
+                {% for sub in submissions %}
+                <div class="p-3 rounded-3 bg-dark border border-secondary">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <span class="badge bg-secondary mb-1">{{ sub.assignment.scheduled_date|date:"l, d M Y" }}</span>
+                            <h5 class="text-white fw-bold mb-0 mt-1">{{ sub.assignment.title }}</h5>
+                        </div>
+                        <div>
+                            {% if sub.status == 'approved' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                            {% elif sub.status == 'rejected' %}
+                                <span class="badge bg-danger">Revision</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass me-1"></i>Pending</span>
+                            {% endif %}
+                            <a href="{% url 'coach_verify_submission' sub.id %}" class="btn btn-sm btn-outline-warning ms-2">
+                                Review Proof
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 p-2 rounded bg-black mb-2 text-secondary small">
+                        <div class="col-auto">Distance: <strong class="text-warning">{{ sub.completed_distance }} km</strong></div>
+                        <div class="col-auto ms-3">Duration: <strong class="text-info">{{ sub.completed_duration_minutes }} min</strong></div>
+                        <div class="col-auto ms-3">Pace: <strong class="text-light">{{ sub.pace_calculated }}</strong></div>
+                        {% if sub.avg_heart_rate %}
+                        <div class="col-auto ms-3">Avg HR: <strong class="text-danger">{{ sub.avg_heart_rate }} bpm</strong></div>
+                        {% endif %}
+                    </div>
+
+                    {% if sub.runner_notes %}
+                    <p class="text-secondary small mb-2"><i class="bi bi-chat-left-dots text-info me-1"></i> <strong>Runner note:</strong> "{{ sub.runner_notes }}"</p>
+                    {% endif %}
+
+                    {% if sub.coach_feedback %}
+                    <div class="p-2 rounded bg-black border border-warning border-opacity-50 text-warning small">
+                        <i class="bi bi-chat-quote-fill me-1"></i> <strong>Coach feedback:</strong> {{ sub.coach_feedback }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-secondary">
+                <i class="bi bi-inbox display-4"></i>
+                <p class="mt-2 mb-0">No workout submissions recorded yet for this runner.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Workout Categories - NNCK Coach Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        
+        <!-- Form to Add / Custom Category -->
+        <div class="col-lg-5">
+            <div class="card card-nnck p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-tag-fill text-warning fs-4"></i>
+                    <h4 class="text-white fw-bold mb-0">Create Workout Category</h4>
+                </div>
+                <p class="text-secondary small mb-4">
+                    Add disciplines such as Strength training, Core training, Tempo run, Easy run, Warmup, Cooldown, Interval training, or Custom workouts.
+                </p>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">CATEGORY NAME</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">CATEGORY TYPE</label>
+                        {{ form.category_type }}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-secondary small fw-bold">BADGE COLOR</label>
+                            {{ form.color_code }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-secondary small fw-bold">ICON (BOOTSTRAP)</label>
+                            {{ form.icon }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">DESCRIPTION</label>
+                        {{ form.description }}
+                    </div>
+
+                    <button type="submit" class="btn btn-nnck-gradient w-100">
+                        <i class="bi bi-plus-circle me-1"></i> Save Category
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Existing Categories List -->
+        <div class="col-lg-7">
+            <div class="card card-nnck p-4">
+                <h4 class="text-white fw-bold mb-3"><i class="bi bi-collection-fill text-warning me-2"></i> Configured Workout Disciplines</h4>
+                
+                <div class="row g-3">
+                    {% for cat in categories %}
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 bg-dark border border-secondary h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge" style="background-color: {{ cat.color_code }}; color: #000; font-weight: 700;">
+                                        <i class="bi {{ cat.icon }} me-1"></i> {{ cat.name }}
+                                    </span>
+                                    <span class="badge bg-dark border border-secondary text-secondary small">{{ cat.get_category_type_display }}</span>
+                                </div>
+                                <p class="text-secondary small mb-2">{{ cat.description|default:"Standard club category" }}</p>
+                            </div>
+                            <div class="text-muted small border-top border-secondary pt-2 mt-2">
+                                {{ cat.workouts.count }} workouts assigned
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-4 text-secondary">
+                        No categories found. Create your first category on the left.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

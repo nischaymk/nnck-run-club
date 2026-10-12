@@ -1,0 +1,345 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Runner Dashboard - NNCK Run Club{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Hero Header / Runner Banner -->
+    <div class="card card-nnck p-4 mb-4" style="background: linear-gradient(135deg, rgba(20, 23, 29, 0.98) 0%, rgba(35, 25, 20, 0.98) 100%);">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                <div class="position-relative">
+                    {% if profile.profile_photo %}
+                        <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-2 border-warning" style="object-fit: cover;">
+                    {% else %}
+                        <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 2rem;">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    {% if profile.is_coach %}
+                        <span class="position-absolute bottom-0 end-0 badge bg-warning text-dark border border-dark rounded-pill">Coach</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <h2 class="text-white fw-bold mb-0">{% if profile.is_coach %}Coach {{ user.first_name }} {{ user.last_name }}{% else %}Hey, {{ user.first_name|default:user.username }}!{% endif %}</h2>
+                    {% if profile.is_coach %}
+                        <span class="badge bg-warning text-dark fw-bold">Head Coach & Founder</span>
+                    {% else %}
+                        <span class="badge bg-dark border border-secondary text-light">Member since {{ user.date_joined|date:"M Y" }}</span>
+                    {% endif %}
+                </div>
+                {% if profile.is_coach %}
+                    <p class="text-secondary mb-1 small">
+                        <strong class="text-warning">Nanu Nimma CK Run Club</strong> &bull; ACSM Certified &bull; AFI Pre-Level 1 &bull; Sub-2:30 Marathoner
+                    </p>
+                    <div class="text-light small fst-italic">
+                        "Athlete first. Winning comes second. Run Together. Grow Together."
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-2">
+                        <i class="bi bi-flag-fill text-warning me-1"></i> Target: <strong class="text-light">{{ profile.target_race|default:"General Fitness" }}</strong> 
+                        &bull; Target Pace: <strong class="text-light">{{ profile.target_pace|default:"Custom" }}</strong>
+                    </p>
+                    <div class="text-secondary small">
+                        {{ profile.bio|default:"No bio added yet. Edit your profile to share your running story!"|truncatechars:120 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-auto d-flex flex-wrap gap-2">
+                <a href="{% url 'club_runners' %}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 shadow-sm">
+                    <i class="bi bi-people"></i> Meet Club Runners
+                </a>
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary text-light btn-sm d-flex align-items-center gap-1 shadow-sm">
+                    <i class="bi bi-person-gear"></i> Edit Profile & Photo
+                </a>
+                {% if user.profile.is_coach %}
+                <a href="{% url 'coach_assign_workout' %}" class="btn btn-nnck-gradient btn-sm d-flex align-items-center gap-1">
+                    <i class="bi bi-calendar-plus"></i> Upload Workout
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Mileage & Completed Workout KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">THIS WEEK VERIFIED</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ weekly_verified_km|floatformat:1 }}</h2>
+                    <span class="text-warning fw-semibold">km</span>
+                </div>
+                <div class="mt-2">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Target: {{ profile.weekly_mileage_target }} km</span>
+                        <span>{{ mileage_percentage }}%</span>
+                    </div>
+                    <div class="progress-nnck">
+                        <div class="progress-bar-nnck" style="width: {{ mileage_percentage }}%; height: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">TOTAL COMPLETED DISTANCE</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ total_verified_km|floatformat:1 }}</h2>
+                    <span class="text-success fw-semibold">km</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-patch-check text-success me-1"></i> Verified by Coach</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">VERIFIED SESSIONS</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ approved_count }}</h2>
+                    <span class="text-info fw-semibold">approved</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-award text-warning me-1"></i> NNCK Official Mileage</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">PENDING VERIFICATION</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ pending_count }}</h2>
+                    <span class="text-secondary fw-semibold">awaiting</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-hourglass-split text-info me-1"></i> Under Coach review</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SECTION: COACH ASSIGNED WORKOUTS -->
+    <div class="row g-4 mb-4">
+        
+        <!-- Left: Tomorrow & Today Assigned Workouts -->
+        <div class="col-lg-7">
+            
+            <!-- TOMORROW'S WORKOUT SECTION (NEXT DAY WORKOUT) -->
+            <div class="card card-nnck p-4 mb-4 border-warning border-opacity-50" style="background: linear-gradient(180deg, #1f222b 0%, #15181f 100%); position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -20px; top: -20px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(253, 187, 17, 0.15) 0%, transparent 70%);"></div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6">
+                            <i class="bi bi-calendar-event me-1"></i> NEXT DAY'S WORKOUT
+                        </span>
+                        <span class="text-secondary small fw-semibold">({{ tomorrow_date|date:"l, d M Y" }})</span>
+                    </div>
+                    {% if user.profile.is_coach %}
+                        <a href="{% url 'coach_assign_workout' %}" class="btn btn-sm btn-outline-secondary text-light"><i class="bi bi-pencil me-1"></i> Upload for Tomorrow</a>
+                    {% endif %}
+                </div>
+
+                {% if next_day_workouts %}
+                    {% for workout in next_day_workouts %}
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(28, 32, 41, 0.95); border: 1px solid rgba(253, 187, 17, 0.3);">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge" style="background-color: {{ workout.category.color_code|default:'#ff6b35' }}; color: #000; font-weight: 700;">
+                                    <i class="bi {{ workout.category.icon|default:'bi-stopwatch' }} me-1"></i> {{ workout.category.name }}
+                                </span>
+                                <h4 class="text-white fw-bold mt-2 mb-1">{{ workout.title }}</h4>
+                                <p class="text-secondary small mb-0">Assigned by Coach <strong class="text-light">{{ workout.coach.get_full_name|default:workout.coach.username }}</strong></p>
+                            </div>
+                            <span class="badge bg-dark border border-secondary text-info text-capitalize">{{ workout.intensity_level }} Intensity</span>
+                        </div>
+
+                        <!-- Target Metrics -->
+                        <div class="row g-2 my-2 py-2 border-top border-bottom border-secondary">
+                            {% if workout.target_distance %}
+                            <div class="col-auto">
+                                <span class="text-secondary small">Target Distance:</span>
+                                <span class="text-warning fw-bold ms-1">{{ workout.target_distance }} km</span>
+                            </div>
+                            {% endif %}
+                            {% if workout.target_duration %}
+                            <div class="col-auto ms-3">
+                                <span class="text-secondary small">Target Duration:</span>
+                                <span class="text-info fw-bold ms-1">{{ workout.target_duration }} mins</span>
+                            </div>
+                            {% endif %}
+                            {% if workout.target_pace %}
+                            <div class="col-auto ms-3">
+                                <span class="text-secondary small">Target Pace:</span>
+                                <span class="text-light fw-bold ms-1">{{ workout.target_pace }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Workout Guidance / Instructions -->
+                        <div class="mt-3">
+                            <h6 class="text-warning small fw-bold mb-1"><i class="bi bi-card-text me-1"></i> WORKOUT INSTRUCTIONS:</h6>
+                            <p class="text-light mb-2" style="white-space: pre-line; font-size: 0.95rem;">{{ workout.description }}</p>
+                        </div>
+
+                        {% if workout.notes %}
+                        <div class="p-2 rounded bg-dark border border-secondary small text-secondary mt-2 mb-3">
+                            <strong class="text-warning"><i class="bi bi-info-circle me-1"></i> Coach's Advice:</strong> {{ workout.notes }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Action: Upload Screenshot Proof -->
+                        <div class="d-flex justify-content-end align-items-center pt-2 border-top border-secondary">
+                            {% if workout.id in submitted_assignment_ids %}
+                                <span class="badge bg-success-subtle text-success border border-success p-2 me-2">
+                                    <i class="bi bi-check-circle me-1"></i> Screenshot Proof Uploaded
+                                </span>
+                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-outline-secondary text-light">Re-upload</a>
+                            {% else %}
+                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-nnck-gradient">
+                                    <i class="bi bi-camera-fill me-1"></i> Post Workout Proof (Screenshot)
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4 bg-dark rounded-3 border border-secondary">
+                        <i class="bi bi-calendar-check text-secondary display-5"></i>
+                        <h5 class="text-white mt-2">No Workout Assigned Yet for Tomorrow</h5>
+                        <p class="text-secondary small mb-3">Your coach will upload tomorrow's training regimen shortly, or tomorrow is a designated recovery day!</p>
+                        {% if user.profile.is_coach %}
+                        <a href="{% url 'coach_assign_workout' %}" class="btn btn-sm btn-nnck-gradient">Upload Tomorrow's Workout Now</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- TODAY'S SCHEDULE -->
+            <div class="card card-nnck p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-white fw-bold mb-0">
+                        <i class="bi bi-sun text-warning me-2"></i> Today's Assigned Training ({{ today_date|date:"d M Y" }})
+                    </h5>
+                </div>
+
+                {% if today_workouts %}
+                    {% for workout in today_workouts %}
+                    <div class="p-3 rounded-3 mb-3 bg-dark border border-secondary">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge" style="background-color: {{ workout.category.color_code|default:'#ff6b35' }}; color: #000; font-weight: 700;">
+                                    {{ workout.category.name }}
+                                </span>
+                                <h5 class="text-white fw-bold mt-2 mb-1">{{ workout.title }}</h5>
+                                <p class="text-secondary small mb-0">
+                                    Target: <strong class="text-warning">{{ workout.target_distance|default:"--" }} km</strong> 
+                                    &bull; Pace: {{ workout.target_pace|default:"Coach guided" }}
+                                </p>
+                            </div>
+                            <div>
+                                {% if workout.id in submitted_assignment_ids %}
+                                    <span class="badge bg-success-subtle text-success border border-success p-2">
+                                        <i class="bi bi-check-circle me-1"></i> Proof Submitted
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-warning text-dark fw-bold">
+                                        <i class="bi bi-upload me-1"></i> Upload Proof
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-secondary small mb-0">No specific workout assigned for today. Ready for tomorrow's run!</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Right Column: Verification Status & Submissions -->
+        <div class="col-lg-5">
+            
+            <!-- How Proof Upload Works Card -->
+            <div class="card card-nnck p-4 mb-4">
+                <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-patch-check-fill text-warning"></i> Coach Distance Verification
+                </h5>
+                <ol class="text-secondary small ps-3 mb-3" style="line-height: 1.8;">
+                    <li>Coach schedules your workout routine everyday.</li>
+                    <li>Complete your run outdoors or on track.</li>
+                    <li>Take a screenshot from your watch / fitness app showing the distance & duration.</li>
+                    <li>Upload the screenshot under that workout's button.</li>
+                    <li>Once the coach verifies your screenshot, the completed distance is automatically added to your profile mileage.</li>
+                </ol>
+                <div class="text-end">
+                    <a href="{% url 'workout_history' %}" class="text-warning small text-decoration-none">
+                        View all my verified workouts <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Submitted Proofs & Status -->
+            <div class="card card-nnck p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-white fw-bold mb-0">My Recent Submissions</h5>
+                    <a href="{% url 'workout_history' %}" class="text-warning small text-decoration-none">All Proofs</a>
+                </div>
+
+                {% if recent_submissions %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for sub in recent_submissions %}
+                        <div class="p-3 rounded-3 bg-dark border border-secondary">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="text-white fw-bold mb-0">{{ sub.assignment.title }}</h6>
+                                {% if sub.status == 'approved' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Verified</span>
+                                {% elif sub.status == 'rejected' %}
+                                    <span class="badge bg-danger">Revision</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass me-1"></i>Pending</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex flex-wrap gap-3 my-2 text-secondary small">
+                                <div>Completed: <strong class="text-warning">{{ sub.completed_distance }} km</strong></div>
+                                <div>Time: <strong class="text-info">{{ sub.completed_duration_minutes }} min</strong></div>
+                                <div>Pace: <strong class="text-light">{{ sub.pace_calculated }}</strong></div>
+                            </div>
+                            
+                            {% if sub.screenshot %}
+                            <div class="mt-2">
+                                <a href="{{ sub.screenshot.url }}" target="_blank" class="small text-info text-decoration-none">
+                                    <i class="bi bi-image me-1"></i> View Submitted Screenshot
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            {% if sub.coach_feedback %}
+                            <div class="p-2 rounded bg-black border border-warning border-opacity-50 text-warning small mt-2">
+                                <i class="bi bi-chat-quote-fill me-1"></i> <strong>Coach:</strong> {{ sub.coach_feedback }}
+                            </div>
+                            {% endif %}
+                            <div class="text-end text-muted small mt-1">
+                                Submitted {{ sub.created_at|date:"d M Y, H:i" }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-secondary">
+                        <i class="bi bi-camera display-6"></i>
+                        <p class="small mt-2 mb-0">No workouts submitted yet. Upload your first run screenshot once today's workout is done!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Upload Workout Screenshot - NNCK Run Club{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-nnck p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-2 border-bottom border-secondary">
+                    <div class="avatar-circle">
+                        <i class="bi bi-camera-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-0">Post Workout Proof</h3>
+                        <p class="text-secondary small mb-0">Upload screenshot proof from your GPS watch or fitness app for Coach verification</p>
+                    </div>
+                </div>
+
+                <!-- Assigned Workout Details Card -->
+                <div class="p-3 rounded-3 mb-4 bg-dark border border-secondary">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge" style="background-color: {{ assignment.category.color_code|default:'#ff6b35' }}; color: #000; font-weight: 700;">
+                                {{ assignment.category.name }}
+                            </span>
+                            <h4 class="text-white fw-bold mt-2 mb-1">{{ assignment.title }}</h4>
+                            <p class="text-secondary small mb-1">Scheduled Date: <strong class="text-light">{{ assignment.scheduled_date|date:"l, d M Y" }}</strong></p>
+                        </div>
+                        <span class="badge bg-black border border-secondary text-info text-capitalize">{{ assignment.intensity_level }} Intensity</span>
+                    </div>
+                    
+                    <div class="row g-2 mt-2 pt-2 border-top border-secondary text-secondary small">
+                        {% if assignment.target_distance %}
+                        <div class="col-auto">Target Distance: <strong class="text-warning">{{ assignment.target_distance }} km</strong></div>
+                        {% endif %}
+                        {% if assignment.target_duration %}
+                        <div class="col-auto ms-3">Target Duration: <strong class="text-info">{{ assignment.target_duration }} mins</strong></div>
+                        {% endif %}
+                        {% if assignment.target_pace %}
+                        <div class="col-auto ms-3">Target Pace: <strong class="text-light">{{ assignment.target_pace }}</strong></div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Screenshot File Inputs (Up to 10 Proofs Allowed) -->
+                    <div class="mb-4 p-3 rounded-3" style="background: rgba(253, 187, 17, 0.05); border: 1px dashed rgba(253, 187, 17, 0.4);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label text-warning fw-bold mb-0">
+                                <i class="bi bi-images me-1"></i> UPLOAD PROOF SCREENSHOTS (MAX 10 FILES) *
+                            </label>
+                            <span class="badge bg-warning text-dark fw-bold">Limit: 10 Screenshots</span>
+                        </div>
+                        <div class="form-text text-secondary small mb-3">
+                            You can select up to <strong>10 screenshot files</strong> at once from your phone gallery or watch apps (Garmin, COROS, Strava, Apple Fitness, Nike Run Club, treadmill).
+                        </div>
+
+                        <!-- Multi-file picker -->
+                        <div class="mb-3">
+                            <input type="file" name="screenshots" multiple accept="image/*" class="form-control bg-dark border-secondary text-white p-2" id="id_screenshots" onchange="previewFiles(this)">
+                            <div class="small text-warning mt-1" id="fileCountDisplay">Tip: You can select multiple images together from your mobile gallery.</div>
+                        </div>
+
+                        <!-- Fallback / additional slots -->
+                        <details class="text-secondary small mt-2">
+                            <summary class="text-warning text-decoration-underline" style="cursor: pointer;">Or upload individual files one-by-one</summary>
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold">Slot 1</label>
+                                    {{ form.screenshot }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold">Slot 2</label>
+                                    {{ form.screenshot_2 }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-secondary small fw-bold">Slot 3</label>
+                                    {{ form.screenshot_3 }}
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <script>
+                    function previewFiles(input) {
+                        const count = input.files.length;
+                        const display = document.getElementById('fileCountDisplay');
+                        if (count > 10) {
+                            alert("You selected " + count + " images. Please select at most 10 screenshot files.");
+                            input.value = "";
+                            display.textContent = "Please choose up to 10 files.";
+                        } else if (count > 0) {
+                            display.textContent = count + " screenshot(s) selected and ready for upload.";
+                        }
+                    }
+                    </script>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">COMPLETED DISTANCE (KM) *</label>
+                            {{ form.completed_distance }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">COMPLETED TIME (MINUTES) *</label>
+                            {{ form.completed_duration_minutes }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">AVERAGE PACE (OPTIONAL)</label>
+                            {{ form.avg_pace }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">AVERAGE HEART RATE (OPTIONAL)</label>
+                            {{ form.avg_heart_rate }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">RUNNER NOTES & HOW YOU FELT</label>
+                        {{ form.runner_notes }}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-nnck-gradient">
+                            <i class="bi bi-cloud-upload-fill me-1"></i> Submit for Coach Verification
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

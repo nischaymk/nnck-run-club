@@ -1,0 +1,236 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Coach & Admin Portal - NNCK Run Club{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Coach Banner -->
+    <div class="card card-nnck p-4 mb-4 border-warning border-opacity-50" style="background: linear-gradient(135deg, rgba(20, 23, 29, 0.98) 0%, rgba(45, 30, 20, 0.98) 100%);">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                {% if user.profile.profile_photo %}
+                    <img src="{{ user.profile.profile_photo.url }}" alt="Coach" width="80" height="80" class="rounded-circle border border-2 border-warning shadow" style="object-fit: cover;">
+                {% else %}
+                    <div class="avatar-circle" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark fw-bold">COACH CONTROL CENTER</span>
+                    <span class="badge bg-dark border border-secondary text-light">Admin Access</span>
+                </div>
+                <h2 class="text-white fw-bold mb-1">Coach {{ user.first_name }} {{ user.last_name }} &bull; Training & Verification Portal</h2>
+                <p class="text-secondary mb-0">Assign daily workouts for athletes, verify screenshot submissions, and manage runner profiles and performance.</p>
+            </div>
+            <div class="col-lg-auto d-flex flex-wrap gap-2">
+                <a href="{% url 'coach_assign_workout' %}" class="btn btn-nnck-gradient btn-sm">
+                    <i class="bi bi-calendar-plus me-1"></i> Upload Daily Workout
+                </a>
+                <a href="{% url 'coach_category' %}" class="btn btn-outline-warning btn-sm">
+                    <i class="bi bi-tags me-1"></i> Manage Categories
+                </a>
+                <a href="/admin/" target="_blank" class="btn btn-outline-secondary text-light btn-sm">
+                    <i class="bi bi-gear-fill me-1"></i> Admin Portal
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coach KPI Highlights -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">ACTIVE RUNNERS</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ total_runners_count }}</h2>
+                    <span class="text-warning fw-semibold">athletes</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-people text-info me-1"></i> Registered club members</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">PENDING VERIFICATIONS</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ pending_submissions.count }}</h2>
+                    <span class="text-danger fw-semibold">proofs to review</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-clock-history text-danger me-1"></i> Awaiting coach approval</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-tile">
+                <div class="text-secondary small fw-bold mb-1">CLUB VERIFIED WEEKLY KM</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="text-white fw-bold mb-0">{{ club_week_km|floatformat:1 }}</h2>
+                    <span class="text-success fw-semibold">km</span>
+                </div>
+                <p class="text-muted small mt-2 mb-0"><i class="bi bi-patch-check-fill text-success me-1"></i> Approved this week</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENDING WORKOUT PROOF VERIFICATIONS (CRITICAL COACH ACTION) -->
+    <div class="card card-nnck p-4 mb-4 border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="text-white fw-bold mb-0"><i class="bi bi-camera-fill text-warning me-2"></i> Pending Runner Workout Proofs</h4>
+                <p class="text-secondary small mb-0">Review athlete screenshots and approve completed distance to automatically update their profile</p>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-2 fw-bold">{{ pending_submissions.count }} Pending</span>
+        </div>
+
+        {% if pending_submissions %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                    <thead>
+                        <tr class="text-secondary small border-secondary">
+                            <th>RUNNER</th>
+                            <th>WORKOUT TITLE</th>
+                            <th>CLAIMED DISTANCE</th>
+                            <th>DURATION</th>
+                            <th>SCREENSHOT PROOF</th>
+                            <th>RUNNER NOTES</th>
+                            <th>VERIFY ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in pending_submissions %}
+                        <tr class="border-secondary">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if sub.runner.profile.profile_photo %}
+                                        <img src="{{ sub.runner.profile.profile_photo.url }}" alt="{{ sub.runner.username }}" width="36" height="36" class="rounded-circle border border-warning" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                                            {{ sub.runner.first_name|first|default:sub.runner.username|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong class="text-white">{{ sub.runner.get_full_name|default:sub.runner.username }}</strong>
+                                        <div class="text-muted small">@{{ sub.runner.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="text-warning">{{ sub.assignment.title }}</strong>
+                                <div class="text-muted small">{{ sub.assignment.scheduled_date|date:"d M Y" }}</div>
+                            </td>
+                            <td>
+                                <span class="text-warning fw-bold fs-6">{{ sub.completed_distance }} km</span>
+                            </td>
+                            <td>
+                                <span class="text-info">{{ sub.completed_duration_minutes }} min</span>
+                            </td>
+                            <td>
+                                {% if sub.screenshot %}
+                                    <a href="{{ sub.screenshot.url }}" target="_blank" class="d-inline-flex align-items-center gap-1 btn btn-sm btn-outline-info">
+                                        <i class="bi bi-image"></i> Inspect Screenshot
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">No file</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-secondary small">{{ sub.runner_notes|default:"None"|truncatechars:60 }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'coach_verify_submission' sub.id %}" class="btn btn-sm btn-nnck-gradient">
+                                    <i class="bi bi-patch-check me-1"></i> Verify & Approve
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-secondary">
+                <i class="bi bi-check-all display-5 text-success"></i>
+                <p class="mt-2 mb-0 text-white fw-bold">All runner submissions are verified!</p>
+                <small class="text-secondary">New screenshot submissions will appear here automatically.</small>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Club Runners Roster -->
+    <div class="card card-nnck p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="text-white fw-bold mb-0"><i class="bi bi-people text-warning me-2"></i> Club Athletes & Verified Mileage</h4>
+                <p class="text-secondary small mb-0">Coach tracking of each athlete's verified completed distance</p>
+            </div>
+            <a href="{% url 'coach_assign_workout' %}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-broadcast me-1"></i> Assign to All Runners
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                <thead>
+                    <tr class="text-secondary small border-secondary">
+                        <th>ATHLETE</th>
+                        <th>BIO & DETAILS</th>
+                        <th>TARGET RACE</th>
+                        <th>VERIFIED TOTAL MILEAGE</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in runners %}
+                    <tr class="border-secondary">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if r.profile.profile_photo %}
+                                    <img src="{{ r.profile.profile_photo.url }}" alt="{{ r.username }}" width="38" height="38" class="rounded-circle border border-warning" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-circle" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                        {{ r.first_name|first|default:r.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <strong class="text-white">{{ r.get_full_name|default:r.username }}</strong>
+                                    <div class="text-muted small">@{{ r.username }} &bull; {{ r.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-secondary small text-truncate" style="max-width: 280px;">
+                                {{ r.profile.bio|default:"No bio added yet" }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-light small fw-bold">{{ r.profile.target_race|default:"General Running" }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success-subtle text-success border border-success fs-6 p-2">
+                                {{ r.profile.total_verified_distance|floatformat:1 }} km
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'coach_runner_analysis' r.id %}" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-graph-up me-1"></i> History
+                                </a>
+                                <a href="{% url 'coach_assign_workout' %}?runner_id={{ r.id }}" class="btn btn-sm btn-nnck-gradient py-1 px-2">
+                                    <i class="bi bi-plus-circle me-1"></i> Upload Workout
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-secondary">No runners registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

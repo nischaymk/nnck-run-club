@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environments
+env/
+venv/
+.venv/
+ENV/
+
+# Django collected staticfiles (built automatically by WhiteNoise)
+staticfiles/
+
+# Logs & temp
+*.log
+local_settings.py
+db.sqlite3-journal
+
+# Database (optional: remove if you wish to track local sqlite3)
+db.sqlite3
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

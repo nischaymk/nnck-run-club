@@ -1,0 +1,118 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Verify Workout Submission - NNCK Coach Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            
+            <div class="card card-nnck p-4 p-md-5 border-warning">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
+                    <div class="avatar-circle">
+                        <i class="bi bi-patch-check-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white fw-bold mb-0">Verify Runner Workout Proof</h3>
+                        <p class="text-secondary small mb-0">Inspect the screenshot and validate the completed distance for athlete profile update</p>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    
+                    <!-- Left: Screenshot Display (Up to 10 Proofs Inspection) -->
+                    <div class="col-md-6">
+                        <label class="form-label text-warning small fw-bold mb-2">
+                            <i class="bi bi-images me-1"></i> RUNNER'S SUBMITTED SCREENSHOTS ({{ submission.get_all_screenshots|length }} ATTACHED)
+                        </label>
+                        <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
+                            {% for img_url in submission.get_all_screenshots %}
+                            <div class="p-2 rounded bg-dark border border-secondary text-center">
+                                <a href="{{ img_url }}" target="_blank">
+                                    <img src="{{ img_url }}" alt="Proof {{ forloop.counter }}" class="img-fluid rounded shadow-sm" style="max-height: 280px; object-fit: contain;">
+                                </a>
+                                <div class="text-warning small mt-1">Proof #{{ forloop.counter }} (Click to enlarge)</div>
+                            </div>
+                            {% empty %}
+                            <div class="p-4 rounded bg-dark border border-secondary text-center text-secondary">
+                                No screenshot images attached
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Right: Submission Data & Verification Form -->
+                    <div class="col-md-6">
+                        
+                        <!-- Runner Info Card -->
+                        <div class="p-3 rounded-3 bg-dark border border-secondary mb-3">
+                            <h6 class="text-warning fw-bold mb-1">{{ submission.assignment.title }}</h6>
+                            <p class="text-secondary small mb-2">Scheduled Date: <strong class="text-light">{{ submission.assignment.scheduled_date|date:"l, d M Y" }}</strong></p>
+                            
+                            <div class="d-flex align-items-center gap-2 pt-2 border-top border-secondary">
+                                {% if submission.runner.profile.profile_photo %}
+                                    <img src="{{ submission.runner.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning">
+                                {% else %}
+                                    <div class="avatar-circle" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ submission.runner.first_name|first|default:submission.runner.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <strong class="text-white small">{{ submission.runner.get_full_name|default:submission.runner.username }}</strong>
+                                    <div class="text-muted small">@{{ submission.runner.username }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if submission.runner_notes %}
+                        <div class="p-2 rounded bg-black border border-secondary text-secondary small mb-3">
+                            <strong class="text-light">Runner Note:</strong> "{{ submission.runner_notes }}"
+                        </div>
+                        {% endif %}
+
+                        <!-- Verification Decision Form -->
+                        <form method="POST">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label text-warning small fw-bold">VERIFIED COMPLETED DISTANCE (KM) *</label>
+                                <input type="number" step="0.01" name="completed_distance" value="{{ submission.completed_distance }}" class="form-control bg-dark border-secondary text-white fw-bold fs-5" required>
+                                <div class="form-text text-muted small">This exact distance will be credited to the runner's profile once approved.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary small fw-bold">RECORDED DURATION (MINS)</label>
+                                <input type="text" value="{{ submission.completed_duration_minutes }} mins (Pace: {{ submission.pace_calculated }})" class="form-control bg-dark border-secondary text-secondary" disabled>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-secondary small fw-bold">COACH FEEDBACK & ANALYSIS FOR RUNNER</label>
+                                <textarea name="coach_feedback" class="form-control bg-dark border-secondary text-white" rows="3" placeholder="Praise, pacing advice, cadence corrections...">{{ submission.coach_feedback|default:'' }}</textarea>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="action" value="approve" class="btn btn-success fw-bold flex-grow-1 py-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Approve & Credit {{ submission.completed_distance }} km
+                                </button>
+                                <button type="submit" name="action" value="reject" class="btn btn-outline-danger py-2">
+                                    <i class="bi bi-x-circle me-1"></i> Request Revision
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="text-end pt-3 border-top border-secondary">
+                    <a href="{% url 'coach_portal' %}" class="btn btn-outline-secondary btn-sm">
+                        Back to Portal
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}Edit Runner Profile - NNCK Run Club{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card card-nnck p-4 p-md-5">
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
+                    {% if profile.profile_photo %}
+                        <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;">
+                    {% else %}
+                        <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 2rem;">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-white fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h3>
+                        <p class="text-secondary small mb-0">Role: <strong class="text-warning text-capitalize">{{ profile.role }}</strong> &bull; Member of NNCK Run Club</p>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <h5 class="text-warning fw-bold mb-3"><i class="bi bi-person-circle me-2"></i> Profile Photo & Bio (Visible to Club Members)</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold">PROFILE PICTURE</label>
+                        {{ form.profile_photo }}
+                        <div class="form-text text-muted small">Upload a clear photo of yourself running or headshot.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold">RUNNER BIO & ASPIRATIONS</label>
+                        {{ form.bio }}
+                        <div class="form-text text-muted small">Share your running story, target races, or motivation with the NNCK community.</div>
+                    </div>
+
+                    <h5 class="text-warning fw-bold mb-3"><i class="bi bi-person-lines-fill me-2"></i> Personal Contact Details</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">FIRST NAME</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">LAST NAME</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">EMAIL</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">PHONE NUMBER</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">GENDER</label>
+                            {{ form.gender }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">DATE OF BIRTH</label>
+                            {{ form.date_of_birth }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-bold">EMERGENCY CONTACT</label>
+                            {{ form.emergency_contact }}
+                        </div>
+                    </div>
+
+                    {% if not profile.is_coach %}
+                    <h5 class="text-warning fw-bold mb-3"><i class="bi bi-trophy me-2"></i> Target Goals & Weekly Mileage</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">TARGET RACE</label>
+                            {{ form.target_race }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">TARGET PACE (e.g. 5:15 /km)</label>
+                            {{ form.target_pace }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold">WEEKLY GOAL (KM)</label>
+                            {{ form.weekly_mileage_target }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-nnck-gradient">Save Profile Details</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

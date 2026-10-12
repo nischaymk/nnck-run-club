@@ -1,0 +1,101 @@
+{% extends 'club/base.html' %}
+{% load static %}
+
+{% block title %}NNCK Club Runners - Run Together, Grow Together{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Directory Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="text-white fw-bold mb-0"><i class="bi bi-people-fill text-warning me-2"></i> Meet Our Club Runners</h2>
+            <p class="text-secondary small mb-0">Browse through our NNCK community members, their bios, aspirations, and completed mileage</p>
+        </div>
+        <a href="{% url 'profile' %}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-person-gear me-1"></i> Update My Bio & Photo
+        </a>
+    </div>
+
+    <!-- Runners Cards Grid -->
+    <div class="row g-4">
+        {% for runner in runners %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-nnck h-100 p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <!-- Athlete Header -->
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        {% if runner.profile.profile_photo %}
+                            <img src="{{ runner.profile.profile_photo.url }}" alt="{{ runner.username }}" width="65" height="65" class="rounded-circle border border-warning" style="object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-circle" style="width: 65px; height: 65px; font-size: 1.6rem;">
+                                {{ runner.first_name|first|default:runner.username|first|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="text-white fw-bold mb-0">{{ runner.get_full_name|default:runner.username }}</h5>
+                            <span class="text-secondary small">@{{ runner.username }}</span>
+                            {% if runner.profile.is_coach %}
+                                <span class="badge bg-warning text-dark ms-1">Coach</span>
+                            {% else %}
+                                <span class="badge bg-dark border border-secondary text-light ms-1">Runner</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Target Goals / Coach Credentials -->
+                    {% if runner.profile.is_coach %}
+                    <div class="p-2 rounded bg-dark border border-warning border-opacity-50 mb-3 small">
+                        <div class="text-warning fw-bold">
+                            <i class="bi bi-award-fill me-1"></i> Head Coach & Founder
+                        </div>
+                        <div class="text-secondary mt-1">
+                            ACSM Certified &bull; AFI Pre-Level 1 &bull; Sub-2:30 Marathoner
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-2 rounded bg-dark border border-secondary mb-3 small">
+                        <div class="text-secondary">
+                            <i class="bi bi-flag-fill text-warning me-1"></i> Target Race: 
+                            <strong class="text-light">{{ runner.profile.target_race|default:"General Running" }}</strong>
+                        </div>
+                        <div class="text-secondary mt-1">
+                            <i class="bi bi-speedometer2 text-info me-1"></i> Target Pace: 
+                            <strong class="text-light">{{ runner.profile.target_pace|default:"Custom" }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Runner Bio -->
+                    <p class="text-secondary small mb-3 fst-italic" style="min-height: 45px;">
+                        "{{ runner.profile.bio|default:"No bio provided yet. Running together with NNCK!"|truncatechars:140 }}"
+                    </p>
+                </div>
+
+                <!-- Footer Stats & Link -->
+                <div class="border-top border-secondary pt-3 mt-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if runner.profile.is_coach %}
+                            <div class="text-secondary small" style="font-size: 0.75rem;">CLUB LEADERSHIP</div>
+                            <div class="text-warning fw-bold fs-6"><i class="bi bi-shield-check me-1"></i> Head Coach</div>
+                        {% else %}
+                            <div class="text-secondary small" style="font-size: 0.75rem;">VERIFIED MILEAGE</div>
+                            <div class="text-warning fw-bold fs-5">{{ runner.profile.total_verified_distance|floatformat:1 }} <span class="small fs-6">km</span></div>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'runner_detail' runner.id %}" class="btn btn-sm btn-outline-secondary text-light">
+                        View Profile <i class="bi bi-chevron-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-secondary">
+            <i class="bi bi-people display-4"></i>
+            <p class="mt-2">No runners found in the club directory.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

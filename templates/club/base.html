@@ -1,0 +1,525 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NNCK Run Club - Run Together, Grow Together{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --nnck-black: #0c0d10;
+            --nnck-dark: #14171d;
+            --nnck-card: #1c2029;
+            --nnck-border: #2b303c;
+            --nnck-yellow: #fdbb11;
+            --nnck-orange: #f26522;
+            --nnck-pink: #e02874;
+            --nnck-text: #f0f2f5;
+            --nnck-text-muted: #9aa0a6;
+            --nnck-gradient: linear-gradient(135deg, #fdbb11 0%, #f26522 50%, #e02874 100%);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--nnck-black);
+            color: var(--nnck-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand-font {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .navbar-nnck {
+            background: rgba(20, 23, 29, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--nnck-border);
+        }
+
+        .brand-badge {
+            background: var(--nnck-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .card-nnck {
+            background-color: var(--nnck-card);
+            border: 1px solid var(--nnck-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card-nnck:hover {
+            border-color: rgba(253, 187, 17, 0.4);
+        }
+
+        .btn-nnck-gradient {
+            background: var(--nnck-gradient);
+            color: #000 !important;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 20px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(242, 101, 34, 0.3);
+        }
+
+        .btn-nnck-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(242, 101, 34, 0.5);
+            filter: brightness(1.05);
+        }
+
+        .btn-outline-nnck {
+            border: 2px solid var(--nnck-yellow);
+            color: var(--nnck-yellow);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 8px 20px;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline-nnck:hover {
+            background: var(--nnck-yellow);
+            color: #000;
+        }
+
+        .stats-tile {
+            background: linear-gradient(180deg, rgba(28, 32, 41, 0.9) 0%, rgba(20, 23, 29, 0.9) 100%);
+            border: 1px solid var(--nnck-border);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .progress-nnck {
+            background-color: #2b303c;
+            height: 10px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-nnck {
+            background: var(--nnck-gradient);
+        }
+
+        .avatar-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--nnck-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #000;
+        }
+
+        /* High Contrast & Visible Typography */
+        .text-secondary {
+            color: #b3b9c5 !important; /* brighter, high-contrast readable on dark */
+        }
+        .text-muted {
+            color: #9aa0a6 !important;
+        }
+
+        /* Responsive Mobile Layout & Form Elements */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+            .card-nnck {
+                padding: 1.25rem !important;
+                border-radius: 14px;
+            }
+            h1, .display-4 {
+                font-size: 2rem !important;
+            }
+            h2, .display-5 {
+                font-size: 1.5rem !important;
+            }
+            h3 {
+                font-size: 1.3rem !important;
+            }
+            .stats-tile {
+                padding: 12px;
+            }
+            .table-responsive {
+                border-radius: 10px;
+            }
+            /* Mobile bottom bar padding so footer doesn't overlap */
+            body {
+                padding-bottom: 60px;
+            }
+        }
+
+        /* Mobile Bottom Quick Navigation */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(14, 16, 22, 0.98);
+            border-top: 1px solid var(--nnck-border);
+            padding: 8px 10px;
+            z-index: 1050;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-nav {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+            }
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #9aa0a6;
+            text-decoration: none;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .mobile-nav-item i {
+            font-size: 1.25rem;
+            margin-bottom: 2px;
+        }
+
+        .mobile-nav-item.active {
+            color: var(--nnck-yellow);
+        }
+
+        /* Better form inputs on mobile touch */
+        .form-control, .form-select {
+            color: #ffffff !important;
+            border-color: #3e4453 !important;
+            font-size: 0.95rem;
+        }
+        .form-control::placeholder {
+            color: #838a96 !important;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #171b22 !important;
+            border-color: var(--nnck-yellow) !important;
+            box-shadow: 0 0 0 0.25rem rgba(253, 187, 17, 0.25) !important;
+            color: #fff !important;
+        }
+
+        .footer-nnck {
+            background: #0f1117;
+            border-top: 1px solid var(--nnck-border);
+        }
+        .hover-warning {
+            transition: color 0.15s ease;
+        }
+        .hover-warning:hover {
+            color: var(--nnck-yellow) !important;
+        }
+        .tracking-wider {
+            letter-spacing: 0.08em;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-nnck sticky-top">
+        <div class="container-fluid px-lg-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'index' %}{% endif %}">
+                <img src="{% static 'images/logo.jpg' %}" alt="NNCK Logo" width="46" height="46" class="rounded-circle border border-warning" style="object-fit: cover;">
+                <div>
+                    <span class="brand-badge fs-4">NNCK</span>
+                    <span class="text-white-50 ms-1 fw-bold fs-6 d-none d-sm-inline">RUN CLUB</span>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nnckNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="nnckNavbar">
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-lg-2">
+                    {% if user.profile.is_coach %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'coach_portal' %}active text-warning fw-bold{% endif %}" href="{% url 'coach_portal' %}">
+                            <i class="bi bi-patch-check me-1"></i> Verify Submissions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'coach_workouts_list' %}active text-warning fw-bold{% endif %}" href="{% url 'coach_workouts_list' %}">
+                            <i class="bi bi-card-checklist me-1"></i> Posted Workouts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'coach_assign_workout' %}active text-warning fw-bold{% endif %}" href="{% url 'coach_assign_workout' %}">
+                            <i class="bi bi-calendar-plus me-1"></i> Assign Workouts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'club_runners' %}active text-warning fw-bold{% endif %}" href="{% url 'club_runners' %}">
+                            <i class="bi bi-people-fill me-1"></i> Manage Runners
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active text-warning fw-bold{% endif %}" href="{% url 'leaderboard' %}">
+                            <i class="bi bi-trophy me-1"></i> Leaderboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'coach_category' %}active text-warning fw-bold{% endif %}" href="{% url 'coach_category' %}">
+                            <i class="bi bi-tags me-1"></i> Categories
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active text-warning fw-bold{% endif %}" href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i> My Workouts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active text-warning fw-bold{% endif %}" href="{% url 'leaderboard' %}">
+                            <i class="bi bi-trophy me-1"></i> Leaderboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'club_runners' %}active text-warning fw-bold{% endif %}" href="{% url 'club_runners' %}">
+                            <i class="bi bi-people-fill me-1"></i> Club Runners
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'workout_history' %}active text-warning fw-bold{% endif %}" href="{% url 'workout_history' %}">
+                            <i class="bi bi-journal-check me-1"></i> Verified Mileage
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 text-light border-secondary" type="button" data-bs-toggle="dropdown">
+                            {% if user.profile.profile_photo %}
+                                <img src="{{ user.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" style="object-fit: cover;">
+                            {% else %}
+                                <div class="avatar-circle" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="d-none d-md-inline fw-semibold">{{ user.first_name|default:user.username }}</span>
+                            {% if user.profile.is_coach %}
+                                <span class="badge bg-warning text-dark px-2 py-0">COACH</span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end bg-dark border-secondary">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Edit My Profile & Bio</a></li>
+                            <li><a class="dropdown-item" href="{% url 'runner_detail' user.id %}"><i class="bi bi-eye me-2"></i>View Public Athlete Card</a></li>
+                            {% if user.profile.is_coach %}
+                            <li><a class="dropdown-item" href="{% url 'coach_portal' %}"><i class="bi bi-shield-check me-2"></i>Coach Verification Portal</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+                {% else %}
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <a href="/admin/" class="btn btn-outline-secondary btn-sm text-light border-secondary me-2">
+                        <i class="bi bi-shield-lock me-1"></i> Admin Portal
+                    </a>
+                    <a href="{% url 'index' %}" class="btn btn-nnck-gradient btn-sm">Member Sign In</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Global Messages Alert -->
+    <div class="container-fluid px-lg-4 mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'info' %}info{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert">
+                    <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle{% else %}bi-check-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Organized Footer -->
+    <footer class="footer-nnck mt-auto py-5">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                
+                <!-- Col 1: Club Brand & Location -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <img src="{% static 'images/logo.jpg' %}" alt="NNCK Logo" width="46" height="46" class="rounded-circle border border-warning" style="object-fit: cover;">
+                        <div>
+                            <div class="brand-badge fs-5 fw-black mb-0">NNCK RUN CLUB</div>
+                            <small class="text-warning fw-semibold">Run Together • Grow Together</small>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-3" style="line-height: 1.6; max-width: 320px;">
+                        Bengaluru's official community running portal. Daily coach regimens, structured endurance training, and verified athlete mileage.
+                    </p>
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-dark border border-secondary small text-secondary">
+                        <i class="bi bi-geo-alt-fill text-danger"></i> Bengaluru, Karnataka, India
+                    </div>
+                </div>
+
+                <!-- Col 2: Navigation Links -->
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase tracking-wider small">Club Portal</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        {% if user.is_authenticated %}
+                            {% if user.profile.is_coach %}
+                                <li class="mb-2"><a href="{% url 'coach_portal' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-shield-check me-1"></i> Coach Portal</a></li>
+                                <li class="mb-2"><a href="{% url 'coach_workouts_list' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-card-checklist me-1"></i> Posted Workouts</a></li>
+                                <li class="mb-2"><a href="{% url 'coach_assign_workout' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-plus-circle me-1"></i> Assign Workout</a></li>
+                            {% else %}
+                                <li class="mb-2"><a href="{% url 'dashboard' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-speedometer2 me-1"></i> Daily Workouts</a></li>
+                                <li class="mb-2"><a href="{% url 'workout_history' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-journal-check me-1"></i> My Verified Mileage</a></li>
+                                <li class="mb-2"><a href="{% url 'profile' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-person me-1"></i> Runner Profile</a></li>
+                            {% endif %}
+                            <li class="mb-2"><a href="{% url 'leaderboard' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-trophy me-1"></i> Weekly Leaderboard</a></li>
+                            <li class="mb-2"><a href="{% url 'club_runners' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-people me-1"></i> Club Runners Directory</a></li>
+                        {% else %}
+                            <li class="mb-2"><a href="{% url 'index' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard</a></li>
+                            <li class="mb-2"><a href="{% url 'password_reset' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-key me-1"></i> Forgot Password</a></li>
+                            <li class="mb-2"><a href="/admin/" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-shield-lock me-1"></i> Coach Admin Portal</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Col 3: Coaching Credentials -->
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase tracking-wider small">Head Coach</h6>
+                    <div class="small text-secondary mb-2">
+                        <strong class="text-white d-block">CHANDRAKANTH M</strong>
+                        <span>Head Coach & Founder</span>
+                    </div>
+                    <ul class="list-unstyled mb-2 small text-secondary">
+                        <li class="mb-1"><i class="bi bi-patch-check-fill text-warning me-1"></i> ACSM Certified</li>
+                        <li class="mb-1"><i class="bi bi-patch-check-fill text-warning me-1"></i> AFI Pre-Level 1</li>
+                        <li class="mb-1"><i class="bi bi-stopwatch text-info me-1"></i> Sub-2:30 Marathoner</li>
+                    </ul>
+                    <div class="fst-italic text-secondary small" style="font-size: 0.78rem;">
+                        "Athlete first. Winning comes second."
+                    </div>
+                </div>
+
+                <!-- Col 4: Disciplines & Direct Access -->
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase tracking-wider small">Disciplines</h6>
+                    <div class="d-flex flex-wrap gap-1 mb-3">
+                        <span class="badge bg-dark border border-secondary text-secondary">Intervals</span>
+                        <span class="badge bg-dark border border-secondary text-secondary">Tempo Run</span>
+                        <span class="badge bg-dark border border-secondary text-secondary">Easy Run</span>
+                        <span class="badge bg-dark border border-secondary text-secondary">Strength</span>
+                        <span class="badge bg-dark border border-secondary text-secondary">Warmup</span>
+                    </div>
+                    <div>
+                        <a href="/admin/" class="btn btn-sm btn-outline-secondary text-light w-100 py-1" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-lock me-1"></i> Admin Portal
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Copyright & Status Bar -->
+            <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2 small text-secondary">
+                <div>
+                    &copy; {% now "Y" %} <span class="text-white fw-bold">NNCK RUN CLUB</span>. All rights reserved.
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">Structured Training • Verified Screenshot Proofs</span>
+                    <span class="text-warning small fw-semibold">Bengaluru, IN</span>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Mobile Bottom Fixed Quick-Bar (Phones / Tablets) -->
+    {% if user.is_authenticated %}
+    <nav class="mobile-bottom-nav">
+        {% if user.profile.is_coach %}
+            <a href="{% url 'coach_portal' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'coach_portal' %}active{% endif %}">
+                <i class="bi bi-patch-check"></i>
+                <span>Verify</span>
+            </a>
+            <a href="{% url 'coach_workouts_list' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'coach_workouts_list' %}active{% endif %}">
+                <i class="bi bi-card-checklist"></i>
+                <span>Workouts</span>
+            </a>
+            <a href="{% url 'coach_assign_workout' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'coach_assign_workout' %}active{% endif %}">
+                <i class="bi bi-plus-circle-fill text-warning" style="font-size: 1.45rem;"></i>
+                <span>Assign</span>
+            </a>
+            <a href="{% url 'leaderboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}">
+                <i class="bi bi-trophy"></i>
+                <span>Ranks</span>
+            </a>
+            <a href="{% url 'club_runners' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'club_runners' %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>Runners</span>
+            </a>
+        {% else %}
+            <a href="{% url 'dashboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Today</span>
+            </a>
+            <a href="{% url 'leaderboard' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}">
+                <i class="bi bi-trophy-fill text-warning"></i>
+                <span>Leaderboard</span>
+            </a>
+            <a href="{% url 'club_runners' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'club_runners' %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>Club</span>
+            </a>
+            <a href="{% url 'workout_history' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'workout_history' %}active{% endif %}">
+                <i class="bi bi-journal-check"></i>
+                <span>Mileage</span>
+            </a>
+            <a href="{% url 'profile' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="bi bi-person"></i>
+                <span>Profile</span>
+            </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
