@@ -49,17 +49,15 @@
                         {{ profile.bio|default:"No bio added yet. Edit your profile to share your running story!"|truncatechars:120 }}
                     </div>
                 {% endif %}
-            </div>
-
-            <div class="col-lg-auto d-flex flex-wrap gap-2">
-                <a href="{% url 'club_runners' %}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 shadow-sm">
+            <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 pt-2 pt-lg-0 border-top border-lg-top-0 border-secondary border-opacity-25">
+                <a href="{% url 'club_runners' %}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 shadow-sm py-1 px-3">
                     <i class="bi bi-people"></i> Meet Club Runners
                 </a>
-                <a href="{% url 'profile' %}" class="btn btn-outline-secondary text-light btn-sm d-flex align-items-center gap-1 shadow-sm">
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary text-light btn-sm d-flex align-items-center gap-1 shadow-sm py-1 px-3">
                     <i class="bi bi-person-gear"></i> Edit Profile & Photo
                 </a>
                 {% if user.profile.is_coach %}
-                <a href="{% url 'coach_assign_workout' %}" class="btn btn-nnck-gradient btn-sm d-flex align-items-center gap-1">
+                <a href="{% url 'coach_assign_workout' %}" class="btn btn-nnck-gradient btn-sm d-flex align-items-center gap-1 py-1 px-3">
                     <i class="bi bi-calendar-plus"></i> Upload Workout
                 </a>
                 {% endif %}
@@ -158,23 +156,26 @@
                             <span class="badge bg-dark border border-secondary text-info text-capitalize">{{ workout.intensity_level }} Intensity</span>
                         </div>
 
-                        <!-- Target Metrics -->
-                        <div class="row g-2 my-2 py-2 border-top border-bottom border-secondary">
+                        <!-- Target Metrics Responsive Chips -->
+                        <div class="d-flex flex-wrap gap-2 my-3 py-2 border-top border-bottom border-secondary border-opacity-50">
                             {% if workout.target_distance %}
-                            <div class="col-auto">
-                                <span class="text-secondary small">Target Distance:</span>
+                            <div class="d-flex align-items-center gap-1 bg-black bg-opacity-60 px-3 py-1 rounded-pill border border-secondary border-opacity-50">
+                                <i class="bi bi-geo-alt-fill text-warning"></i>
+                                <span class="text-secondary small">Distance:</span>
                                 <span class="text-warning fw-bold ms-1">{{ workout.target_distance }} km</span>
                             </div>
                             {% endif %}
                             {% if workout.target_duration %}
-                            <div class="col-auto ms-3">
-                                <span class="text-secondary small">Target Duration:</span>
+                            <div class="d-flex align-items-center gap-1 bg-black bg-opacity-60 px-3 py-1 rounded-pill border border-secondary border-opacity-50">
+                                <i class="bi bi-clock-fill text-info"></i>
+                                <span class="text-secondary small">Time:</span>
                                 <span class="text-info fw-bold ms-1">{{ workout.target_duration }} mins</span>
                             </div>
                             {% endif %}
                             {% if workout.target_pace %}
-                            <div class="col-auto ms-3">
-                                <span class="text-secondary small">Target Pace:</span>
+                            <div class="d-flex align-items-center gap-1 bg-black bg-opacity-60 px-3 py-1 rounded-pill border border-secondary border-opacity-50">
+                                <i class="bi bi-speedometer2 text-light"></i>
+                                <span class="text-secondary small">Pace:</span>
                                 <span class="text-light fw-bold ms-1">{{ workout.target_pace }}</span>
                             </div>
                             {% endif %}
@@ -183,24 +184,24 @@
                         <!-- Workout Guidance / Instructions -->
                         <div class="mt-3">
                             <h6 class="text-warning small fw-bold mb-1"><i class="bi bi-card-text me-1"></i> WORKOUT INSTRUCTIONS:</h6>
-                            <p class="text-light mb-2" style="white-space: pre-line; font-size: 0.95rem;">{{ workout.description }}</p>
+                            <p class="text-light mb-2" style="white-space: pre-line; font-size: 0.95rem; line-height: 1.6;">{{ workout.description }}</p>
                         </div>
 
                         {% if workout.notes %}
-                        <div class="p-2 rounded bg-dark border border-secondary small text-secondary mt-2 mb-3">
+                        <div class="p-2 rounded-3 bg-dark border border-secondary small text-secondary mt-2 mb-3">
                             <strong class="text-warning"><i class="bi bi-info-circle me-1"></i> Coach's Advice:</strong> {{ workout.notes }}
                         </div>
                         {% endif %}
 
-                        <!-- Action: Upload Screenshot Proof -->
-                        <div class="d-flex justify-content-end align-items-center pt-2 border-top border-secondary">
+                        <!-- Action: Upload Screenshot Proof (Full width on mobile) -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-sm-end align-items-stretch align-items-sm-center gap-2 pt-3 border-top border-secondary border-opacity-50">
                             {% if workout.id in submitted_assignment_ids %}
-                                <span class="badge bg-success-subtle text-success border border-success p-2 me-2">
+                                <span class="badge bg-success-subtle text-success border border-success p-2 text-center">
                                     <i class="bi bi-check-circle me-1"></i> Screenshot Proof Uploaded
                                 </span>
-                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-outline-secondary text-light">Re-upload</a>
+                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-outline-secondary text-light text-center">Re-upload</a>
                             {% else %}
-                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-nnck-gradient">
+                                <a href="{% url 'submit_workout_proof' workout.id %}" class="btn btn-sm btn-nnck-gradient py-2 px-3 fw-bold shadow text-center">
                                     <i class="bi bi-camera-fill me-1"></i> Post Workout Proof (Screenshot)
                                 </a>
                             {% endif %}

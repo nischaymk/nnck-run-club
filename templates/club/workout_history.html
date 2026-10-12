@@ -89,9 +89,65 @@
     </div>
 
     <!-- Submissions Table -->
-    <div class="card card-nnck p-4">
+    <!-- Submissions Content: Mobile Cards & Desktop Table -->
+    <div class="card card-nnck p-3 p-md-4">
         {% if submissions %}
-            <div class="table-responsive">
+            <!-- Mobile Cards View (Phones) -->
+            <div class="d-flex flex-column gap-3 d-md-none">
+                {% for sub in submissions %}
+                <div class="p-3 rounded-3 bg-dark border border-secondary shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary small fw-semibold">
+                            <i class="bi bi-calendar-event me-1"></i> {{ sub.assignment.scheduled_date|date:"d M Y" }}
+                        </span>
+                        {% if sub.status == 'approved' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                        {% elif sub.status == 'rejected' %}
+                            <span class="badge bg-danger">Revision</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass me-1"></i>Pending</span>
+                        {% endif %}
+                    </div>
+
+                    <h6 class="text-white fw-bold mb-2">{{ sub.assignment.title }}</h6>
+
+                    <div class="d-flex flex-wrap gap-2 my-2">
+                        <span class="badge bg-black border border-secondary text-warning py-1 px-2">
+                            <i class="bi bi-geo-alt-fill me-1"></i>{{ sub.completed_distance }} km
+                        </span>
+                        <span class="badge bg-black border border-secondary text-info py-1 px-2">
+                            <i class="bi bi-clock-fill me-1"></i>{{ sub.completed_duration_minutes }} min
+                        </span>
+                        <span class="badge bg-black border border-secondary text-light py-1 px-2">
+                            <i class="bi bi-speedometer2 me-1"></i>{{ sub.pace_calculated }}
+                        </span>
+                    </div>
+
+                    {% if sub.runner_notes %}
+                    <div class="p-2 rounded bg-black small text-secondary my-2 fst-italic" style="font-size: 0.8rem;">
+                        "{{ sub.runner_notes }}"
+                    </div>
+                    {% endif %}
+
+                    {% if sub.coach_feedback %}
+                    <div class="p-2 rounded bg-black border border-warning border-opacity-50 text-warning small my-2" style="font-size: 0.82rem;">
+                        <i class="bi bi-chat-quote-fill me-1"></i> <strong>Coach:</strong> {{ sub.coach_feedback }}
+                    </div>
+                    {% endif %}
+
+                    {% if sub.screenshot %}
+                    <div class="pt-2 border-top border-secondary border-opacity-50 mt-2">
+                        <a href="{{ sub.screenshot.url }}" target="_blank" class="btn btn-sm btn-outline-info w-100 py-1">
+                            <i class="bi bi-image me-1"></i> View Submitted Proof
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Desktop Table View (Tablets & Desktops) -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
                     <thead>
                         <tr class="text-secondary small border-secondary">

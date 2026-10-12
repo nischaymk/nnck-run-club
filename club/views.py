@@ -222,7 +222,7 @@ def dashboard_view(request):
         assignment__scheduled_date__gte=this_week_start
     ).aggregate(s=Sum('completed_distance'))['s'] or Decimal('0.0')
 
-    target_mileage = profile.weekly_mileage_target or Decimal('30.0')
+    target_mileage = Decimal(str(profile.weekly_mileage_target or 30.0))
     mileage_percentage = min(int((weekly_verified_km / target_mileage) * 100), 100) if target_mileage > 0 else 0
 
     # Get set of workout IDs that runner already submitted

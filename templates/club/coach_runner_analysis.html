@@ -32,11 +32,11 @@
                     {{ runner_profile.bio|default:"No bio provided" }}
                 </div>
             </div>
-            <div class="col-lg-auto d-flex gap-2">
-                <a href="{% url 'coach_assign_workout' %}?runner_id={{ runner.id }}" class="btn btn-nnck-gradient btn-sm">
+            <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 pt-2 pt-lg-0 border-top border-lg-top-0 border-secondary border-opacity-25">
+                <a href="{% url 'coach_assign_workout' %}?runner_id={{ runner.id }}" class="btn btn-nnck-gradient btn-sm py-1 px-3">
                     <i class="bi bi-plus-circle me-1"></i> Upload Workout
                 </a>
-                <a href="{% url 'coach_portal' %}" class="btn btn-outline-secondary btn-sm">
+                <a href="{% url 'coach_portal' %}" class="btn btn-outline-secondary btn-sm py-1 px-3 text-light">
                     Back to Portal
                 </a>
             </div>

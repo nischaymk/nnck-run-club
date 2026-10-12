@@ -61,43 +61,43 @@
                     <div class="d-flex align-items-center justify-content-between gap-2">
                         
                         <!-- Left: Simple Rank Number & Athlete Info -->
-                        <div class="d-flex align-items-center gap-3">
-                            <!-- Simple Rank Number (Clean & Minimalist - No Gold/Silver/Bronze) -->
-                            <div class="text-center" style="min-width: 42px;">
+                        <div class="d-flex align-items-center gap-2 gap-sm-3 text-truncate flex-grow-1">
+                            <!-- Simple Rank Number (Clean & Minimalist) -->
+                            <div class="text-center flex-shrink-0" style="min-width: 34px;">
                                 <span class="fs-5 fw-bold font-monospace {% if entry.athlete == user %}text-warning{% else %}text-light{% endif %}">#{{ entry.rank }}</span>
                             </div>
 
                             <!-- Avatar & Name -->
-                            <div class="d-flex align-items-center gap-2">
-                                <a href="{% url 'runner_detail' entry.athlete.id %}">
+                            <div class="d-flex align-items-center gap-2 text-truncate flex-grow-1">
+                                <a href="{% url 'runner_detail' entry.athlete.id %}" class="flex-shrink-0">
                                     {% if entry.athlete.profile.profile_photo %}
-                                        <img src="{{ entry.athlete.profile.profile_photo.url }}" alt="{{ entry.athlete.username }}" width="46" height="46" class="rounded-circle border border-warning" style="object-fit: cover;">
+                                        <img src="{{ entry.athlete.profile.profile_photo.url }}" alt="{{ entry.athlete.username }}" width="42" height="42" class="rounded-circle border border-warning" style="object-fit: cover;">
                                     {% else %}
-                                        <div class="avatar-circle" style="width: 46px; height: 46px; font-size: 1rem;">
+                                        <div class="avatar-circle" style="width: 42px; height: 42px; min-width: 42px; font-size: 0.95rem;">
                                             {{ entry.athlete.first_name|first|default:entry.athlete.username|first|upper }}
                                         </div>
                                     {% endif %}
                                 </a>
-                                <div>
-                                    <a href="{% url 'runner_detail' entry.athlete.id %}" class="text-white text-decoration-none fw-bold mb-0 d-block">
+                                <div class="text-truncate">
+                                    <a href="{% url 'runner_detail' entry.athlete.id %}" class="text-white text-decoration-none fw-bold mb-0 d-block text-truncate">
                                         {{ entry.athlete.get_full_name|default:entry.athlete.username }}
-                                        {% if entry.athlete == user %}<span class="badge bg-warning text-dark ms-1 small">You</span>{% endif %}
+                                        {% if entry.athlete == user %}<span class="badge bg-warning text-dark ms-1 small" style="font-size: 0.65rem;">You</span>{% endif %}
                                     </a>
-                                    <span class="text-secondary small d-none d-sm-inline">
-                                        Target: {{ entry.athlete.profile.target_race|default:"General Running" }} &bull; 
-                                    </span>
-                                    <span class="text-secondary small">{{ entry.week_runs }} workout{{ entry.week_runs|pluralize }}</span>
+                                    <div class="text-secondary small text-truncate" style="font-size: 0.75rem;">
+                                        <span class="d-none d-sm-inline">{{ entry.athlete.profile.target_race|default:"General Running" }} &bull; </span>
+                                        <span>{{ entry.week_runs }} workout{{ entry.week_runs|pluralize }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Right: Mileage Stats & Profile Button -->
-                        <div class="text-end d-flex align-items-center gap-3">
+                        <div class="text-end d-flex align-items-center gap-2 gap-md-3 flex-shrink-0 ms-2">
                             <div>
-                                <div class="text-warning fw-black fs-4 line-height-1">
+                                <div class="text-warning fw-black fs-4 line-height-1 text-nowrap">
                                     {{ entry.week_km|floatformat:1 }} <span class="fs-6 text-light fw-normal">km</span>
                                 </div>
-                                <div class="text-muted small" style="font-size: 0.72rem;">this week</div>
+                                <div class="text-muted small text-nowrap" style="font-size: 0.7rem;">this week</div>
                             </div>
 
                             <a href="{% url 'runner_detail' entry.athlete.id %}" class="btn btn-sm btn-outline-secondary text-light d-none d-md-inline-block">

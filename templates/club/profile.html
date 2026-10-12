@@ -90,9 +90,11 @@
                     </div>
                     {% endif %}
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-nnck-gradient">Save Profile Details</button>
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-2 border-top border-secondary border-opacity-50">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary order-2 order-sm-1 py-2 px-4 text-center">Cancel</a>
+                        <button type="submit" class="btn btn-nnck-gradient order-1 order-sm-2 py-2 px-4 fw-bold shadow">
+                            <i class="bi bi-check2-circle me-1"></i> Save Profile Details
+                        </button>
                     </div>
 
                 </form>
