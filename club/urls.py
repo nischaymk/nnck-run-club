@@ -27,6 +27,7 @@ urlpatterns = [
     # Coach & Admin Portal
     path('coach/portal/', views.coach_portal_view, name='coach_portal'),
     path('coach/workouts/', views.coach_workouts_list_view, name='coach_workouts_list'),
+    path('coach/workouts/edit/<int:workout_id>/', views.coach_edit_workout_view, name='coach_edit_workout'),
     path('coach/workouts/delete/<int:workout_id>/', views.coach_delete_workout_view, name='coach_delete_workout'),
     path('coach/assign/', views.coach_assign_workout_view, name='coach_assign_workout'),
     path('coach/category/', views.coach_create_category_view, name='coach_category'),

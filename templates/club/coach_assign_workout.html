@@ -1,111 +1,452 @@
 {% extends 'club/base.html' %}
 {% load static %}
 
-{% block title %}Upload Workout - NNCK Coach Portal{% endblock %}
+{% block title %}
+    {% if is_edit %}Update Workout - {{ workout.title }} - NNCK Coach Portal{% else %}Upload Workout - NNCK Coach Portal{% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-3 py-md-4 mb-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card card-nnck p-4 p-md-5 border-warning border-opacity-50">
-                <div class="d-flex align-items-center gap-3 mb-4 pb-2 border-bottom border-secondary">
-                    <div class="avatar-circle">
-                        <i class="bi bi-calendar-plus-fill fs-4"></i>
+        <div class="col-lg-9 col-xl-8">
+            <div class="card card-nnck p-3 p-sm-4 p-md-5 border-warning border-opacity-50 shadow-lg">
+
+                <!-- Header Banner -->
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-50">
+                    <div class="avatar-circle" style="width: 52px; height: 52px; min-width: 52px; font-size: 1.4rem;">
+                        {% if is_edit %}
+                            <i class="bi bi-pencil-square text-warning"></i>
+                        {% else %}
+                            <i class="bi bi-calendar-plus-fill text-warning"></i>
+                        {% endif %}
                     </div>
                     <div>
-                        <h3 class="text-white fw-bold mb-0">Upload / Assign Workout</h3>
-                        <p class="text-secondary small mb-0">Schedule training for tomorrow or future dates for specific runners or the entire club</p>
+                        <h3 class="text-white fw-bold mb-1">
+                            {% if is_edit %}Update Workout Details{% else %}Upload & Assign Workout{% endif %}
+                        </h3>
+                        <p class="text-secondary small mb-0">
+                            {% if is_edit %}
+                                Modify scheduled training parameters, targets, or assigned runners.
+                            {% else %}
+                                Schedule training for tomorrow or future dates for specific runners or the entire club.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
-                <form method="POST">
+                <!-- Form Validation Alert Banner (Displays when any validation errors occur) -->
+                {% if form.errors %}
+                <div class="alert alert-danger border-0 rounded-3 p-3 mb-4 shadow" role="alert" style="background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.4) !important;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
+                        <strong class="text-white">Please correct the following before saving:</strong>
+                    </div>
+                    <ul class="mb-0 ps-3 small text-light">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>
+                                    <span class="text-warning fw-bold">
+                                        {% if field == '__all__' %}General{% else %}{{ field|title }}{% endif %}:
+                                    </span> 
+                                    {{ error }}
+                                </li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="POST" id="workoutAssignForm" novalidate>
                     {% csrf_token %}
+                    
+                    <!-- Hidden field tracking target type: 'all' vs 'group' -->
+                    <input type="hidden" name="target_type" id="id_target_type" value="{{ target_type|default:'all' }}">
+                    {{ form.runner }}
 
-                    <!-- Assignment Targeting: Group or Specific or All -->
-                    <div class="p-3 rounded-3 mb-3 bg-dark border border-secondary">
-                        <label class="form-label text-warning small fw-bold mb-2">
-                            <i class="bi bi-people-fill me-1"></i> SELECT ATHLETES (GROUP OR INDIVIDUAL)
+                    <!-- ============================================== -->
+                    <!-- 1. ATHLETE TARGETING (TOUCH-FRIENDLY FOR PHONES) -->
+                    <!-- ============================================== -->
+                    <div class="p-3 rounded-3 mb-4 bg-dark border border-secondary border-opacity-75">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <label class="form-label text-warning small fw-bold mb-0">
+                                <i class="bi bi-people-fill me-1"></i> WHO IS THIS WORKOUT FOR?
+                            </label>
+                            <span class="text-secondary small">Tap an option below</span>
+                        </div>
+
+                        <!-- Target Mode Selector Toggle Buttons -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-sm-6">
+                                <button type="button" id="targetModeAllBtn" 
+                                    class="btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all {% if target_type == 'all' or not target_type %}btn-warning text-dark fw-bold border-warning{% else %}btn-outline-secondary text-light{% endif %}">
+                                    <i class="bi bi-broadcast fs-3"></i>
+                                    <div>
+                                        <div class="fw-bold">All Club Runners</div>
+                                        <div class="small opacity-75" style="font-size: 0.75rem;">Club-wide broadcast</div>
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <button type="button" id="targetModeGroupBtn" 
+                                    class="btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all {% if target_type == 'group' %}btn-warning text-dark fw-bold border-warning{% else %}btn-outline-secondary text-light{% endif %}">
+                                    <i class="bi bi-people fs-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Specific Runner(s)</div>
+                                        <div class="small opacity-75" style="font-size: 0.75rem;">Pick group or individual</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Runner Selection Container (Visible when 'group' is active) -->
+                        <div id="runnerSelectionContainer" class="mt-3 pt-3 border-top border-secondary border-opacity-50" style="{% if target_type != 'group' %}display: none;{% endif %}">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div class="text-secondary small fw-bold">
+                                    SELECT ATHLETES FOR THIS SESSION:
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" id="selectAllBtn" class="btn btn-xs btn-outline-warning py-1 px-2" style="font-size: 0.75rem;">
+                                        Select All
+                                    </button>
+                                    <button type="button" id="clearAllBtn" class="btn btn-xs btn-outline-secondary py-1 px-2" style="font-size: 0.75rem;">
+                                        Clear
+                                    </button>
+                                    <span id="selectedCountBadge" class="badge bg-warning text-dark fw-bold px-2 py-1">
+                                        0 selected
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Live Search Input for fast filtering on phone -->
+                            <div class="input-group input-group-sm mb-3">
+                                <span class="input-group-text bg-black border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                                <input type="text" id="runnerFilterInput" class="form-control bg-black border-secondary text-white" placeholder="Search runner by name or username..." style="font-size: 14px;">
+                                <button type="button" id="clearFilterBtn" class="btn btn-outline-secondary btn-sm" style="display: none;">&times;</button>
+                            </div>
+
+                            {% if form.runners.errors %}
+                                <div class="alert alert-danger py-2 px-3 small mb-2">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ form.runners.errors.0 }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Responsive Tapable Runner Cards -->
+                            <div class="row row-cols-1 row-cols-sm-2 g-2" id="runnerCardsList" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                                {% for athlete in athletes %}
+                                <div class="col runner-card-col" data-name="{{ athlete.get_full_name|lower }} {{ athlete.username|lower }}">
+                                    <label class="runner-card d-flex align-items-center gap-2 p-2 rounded-3 border border-secondary bg-black bg-opacity-50 text-white w-100 mb-0 cursor-pointer" 
+                                           style="min-height: 52px; user-select: none; transition: all 0.2s ease;">
+                                        <input type="checkbox" name="runners" value="{{ athlete.id }}" 
+                                               class="runner-checkbox form-check-input mt-0 me-1" 
+                                               id="runner_checkbox_{{ athlete.id }}"
+                                               style="width: 1.25rem; height: 1.25rem; cursor: pointer;"
+                                               {% if athlete.id in selected_runner_ids %}checked{% endif %}>
+                                        
+                                        {% if athlete.profile.profile_photo %}
+                                            <img src="{{ athlete.profile.profile_photo.url }}" alt="{{ athlete.username }}" width="34" height="34" class="rounded-circle" style="object-fit: cover;">
+                                        {% else %}
+                                            <div class="avatar-circle" style="width: 34px; height: 34px; min-width: 34px; font-size: 0.8rem;">
+                                                {{ athlete.first_name|first|default:athlete.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="text-truncate flex-grow-1">
+                                            <div class="fw-bold small text-truncate text-white">
+                                                {{ athlete.get_full_name|default:athlete.username }}
+                                            </div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">
+                                                @{{ athlete.username }}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-3 text-secondary small">
+                                    No registered runners found.
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text text-muted small mt-2">
+                                <i class="bi bi-hand-index-thumb me-1"></i> Tap any runner card to select or deselect. You can pick as many athletes as needed.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- 2. WORKOUT CATEGORY                            -->
+                    <!-- ============================================== -->
+                    <div class="mb-3">
+                        <label class="form-label text-warning small fw-bold mb-1">
+                            WORKOUT CATEGORY <span class="text-danger">*</span>
                         </label>
-                        <div class="row g-3">
-                            <div class="col-md-7">
-                                <label class="form-label text-secondary small fw-bold">SELECT MULTIPLE RUNNERS FOR THIS GROUP WORKOUT</label>
-                                {{ form.runners }}
-                                <div class="form-text text-muted small mt-1">
-                                    <i class="bi bi-info-circle me-1"></i> Hold <kbd class="bg-black text-warning">Ctrl</kbd> (or <kbd class="bg-black text-warning">Cmd</kbd> on Mac) to select multiple athletes into this training group.
-                                </div>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label text-secondary small fw-bold">OR SINGLE RUNNER</label>
-                                {{ form.runner }}
-                                <div class="form-text text-muted small mt-1">
-                                    For 1-on-1 personalized workouts. Leave both blank to broadcast to all club runners.
-                                </div>
-                            </div>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback d-block fw-semibold">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted">Type of training session</small>
+                            <a href="{% url 'coach_category' %}" class="small text-warning text-decoration-none">
+                                <i class="bi bi-plus-circle me-1"></i>+ Add Category
+                            </a>
                         </div>
                     </div>
 
+                    <!-- ============================================== -->
+                    <!-- 3. TITLE & SCHEDULED DATE                      -->
+                    <!-- ============================================== -->
                     <div class="row g-3 mb-3">
-                        <div class="col-12">
-                            <label class="form-label text-warning small fw-bold">WORKOUT CATEGORY</label>
-                            {{ form.category }}
-                            <div class="d-flex justify-content-between mt-1">
-                                <small class="text-muted">Discipline of training session</small>
-                                <a href="{% url 'coach_category' %}" class="small text-warning text-decoration-none">+ Add Custom Category</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-8">
-                            <label class="form-label text-secondary small fw-bold">WORKOUT TITLE</label>
+                        <div class="col-12 col-md-7">
+                            <label class="form-label text-secondary small fw-bold mb-1">
+                                WORKOUT TITLE <span class="text-danger">*</span>
+                            </label>
                             {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block fw-semibold">{{ form.title.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-bold">SCHEDULED DATE</label>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label text-secondary small fw-bold mb-1">
+                                SCHEDULED DATE <span class="text-danger">*</span>
+                            </label>
                             {{ form.scheduled_date }}
+                            {% if form.scheduled_date.errors %}
+                                <div class="invalid-feedback d-block fw-semibold">{{ form.scheduled_date.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-bold">TARGET DISTANCE (KM)</label>
+                    <!-- ============================================== -->
+                    <!-- 4. TARGET METRICS (DISTANCE, DURATION, PACE)   -->
+                    <!-- ============================================== -->
+                    <div class="row g-2 g-md-3 mb-3">
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label text-secondary small fw-bold mb-1">
+                                TARGET DISTANCE (KM)
+                            </label>
                             {{ form.target_distance }}
+                            {% if form.target_distance.errors %}
+                                <div class="invalid-feedback d-block fw-semibold">{{ form.target_distance.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-bold">TARGET DURATION (MINUTES)</label>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label text-secondary small fw-bold mb-1">
+                                TARGET DURATION (MIN)
+                            </label>
                             {{ form.target_duration }}
+                            {% if form.target_duration.errors %}
+                                <div class="invalid-feedback d-block fw-semibold">{{ form.target_duration.errors.0 }}</div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small fw-bold">TARGET PACE</label>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label text-secondary small fw-bold mb-1">
+                                TARGET PACE
+                            </label>
                             {{ form.target_pace }}
+                            {% if form.target_pace.errors %}
+                                <div class="invalid-feedback d-block fw-semibold">{{ form.target_pace.errors.0 }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
+                    <!-- ============================================== -->
+                    <!-- 5. INTENSITY LEVEL                             -->
+                    <!-- ============================================== -->
                     <div class="mb-3">
-                        <label class="form-label text-secondary small fw-bold">INTENSITY LEVEL</label>
+                        <label class="form-label text-secondary small fw-bold mb-1">
+                            INTENSITY LEVEL <span class="text-danger">*</span>
+                        </label>
                         {{ form.intensity_level }}
+                        {% if form.intensity_level.errors %}
+                            <div class="invalid-feedback d-block fw-semibold">{{ form.intensity_level.errors.0 }}</div>
+                        {% endif %}
                     </div>
 
+                    <!-- ============================================== -->
+                    <!-- 6. DESCRIPTION & INTERVALS                     -->
+                    <!-- ============================================== -->
                     <div class="mb-3">
-                        <label class="form-label text-secondary small fw-bold">WORKOUT DESCRIPTION & REPS / INTERVALS</label>
+                        <label class="form-label text-secondary small fw-bold mb-1">
+                            WORKOUT DESCRIPTION & REPS / INTERVALS <span class="text-danger">*</span>
+                        </label>
                         {{ form.description }}
-                        <small class="text-muted">E.g. Warmup 1.5km easy, 5x800m repeats at 4:30 pace with 90s jog recovery, cooldown 1km.</small>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block fw-semibold">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">E.g. Warmup 1.5km easy, 5x800m repeats at 4:30 pace with 90s jog recovery, cooldown 1km.</small>
                     </div>
 
+                    <!-- ============================================== -->
+                    <!-- 7. COACH'S ADVICE / NOTES                      -->
+                    <!-- ============================================== -->
                     <div class="mb-4">
-                        <label class="form-label text-secondary small fw-bold">COACH'S PRE-RUN ADVICE & HYDRATION NOTES</label>
+                        <label class="form-label text-secondary small fw-bold mb-1">
+                            COACH'S PRE-RUN ADVICE & HYDRATION NOTES
+                        </label>
                         {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block fw-semibold">{{ form.notes.errors.0 }}</div>
+                        {% endif %}
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'coach_portal' %}" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-nnck-gradient">
-                            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Workout
+                    <!-- ============================================== -->
+                    <!-- 8. FORM ACTIONS (MOBILE-FRIENDLY FULL BUTTONS) -->
+                    <!-- ============================================== -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-2 border-top border-secondary border-opacity-50">
+                        <a href="{% url 'coach_workouts_list' %}" class="btn btn-outline-secondary order-2 order-sm-1 py-2 px-4 text-center">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-nnck-gradient order-1 order-sm-2 py-2 px-4 fw-bold fs-6 shadow">
+                            {% if is_edit %}
+                                <i class="bi bi-check2-circle me-1"></i> Update Workout
+                            {% else %}
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Workout
+                            {% endif %}
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Interactive Touch Script for Mobile Multi-Select and Targeting -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const targetModeAllBtn = document.getElementById('targetModeAllBtn');
+    const targetModeGroupBtn = document.getElementById('targetModeGroupBtn');
+    const targetTypeInput = document.getElementById('id_target_type');
+    const runnerSelectionContainer = document.getElementById('runnerSelectionContainer');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const selectedCountBadge = document.getElementById('selectedCountBadge');
+    const runnerCheckboxes = document.querySelectorAll('.runner-checkbox');
+    const runnerFilterInput = document.getElementById('runnerFilterInput');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    const runnerCols = document.querySelectorAll('.runner-card-col');
+
+    function updateCardVisuals() {
+        let count = 0;
+        runnerCheckboxes.forEach(cb => {
+            const card = cb.closest('.runner-card');
+            if (cb.checked) {
+                count++;
+                if (card) {
+                    card.classList.add('border-warning', 'bg-warning', 'bg-opacity-10');
+                    card.classList.remove('border-secondary');
+                }
+            } else {
+                if (card) {
+                    card.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10');
+                    card.classList.add('border-secondary');
+                }
+            }
+        });
+        if (selectedCountBadge) {
+            selectedCountBadge.textContent = count === 1 ? '1 runner selected' : count + ' runners selected';
+            if (count > 0) {
+                selectedCountBadge.className = 'badge bg-warning text-dark fw-bold px-2 py-1';
+            } else {
+                selectedCountBadge.className = 'badge bg-secondary text-light fw-bold px-2 py-1';
+            }
+        }
+    }
+
+    function setTargetMode(mode) {
+        targetTypeInput.value = mode;
+        if (mode === 'all') {
+            targetModeAllBtn.className = 'btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all btn-warning text-dark fw-bold border-warning';
+            targetModeGroupBtn.className = 'btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all btn-outline-secondary text-light';
+            runnerSelectionContainer.style.display = 'none';
+        } else {
+            targetModeGroupBtn.className = 'btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all btn-warning text-dark fw-bold border-warning';
+            targetModeAllBtn.className = 'btn w-100 py-3 text-start d-flex align-items-center gap-3 rounded-3 border transition-all btn-outline-secondary text-light';
+            runnerSelectionContainer.style.display = 'block';
+        }
+    }
+
+    if (targetModeAllBtn && targetModeGroupBtn) {
+        targetModeAllBtn.addEventListener('click', function() {
+            setTargetMode('all');
+        });
+        targetModeGroupBtn.addEventListener('click', function() {
+            setTargetMode('group');
+        });
+    }
+
+    // Toggle card selection when clicking anywhere on the runner card
+    runnerCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateCardVisuals);
+    });
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            runnerCheckboxes.forEach(cb => {
+                // Only select visible runners if filtered
+                const col = cb.closest('.runner-card-col');
+                if (!col || col.style.display !== 'none') {
+                    cb.checked = true;
+                }
+            });
+            updateCardVisuals();
+        });
+    }
+
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+            runnerCheckboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            updateCardVisuals();
+        });
+    }
+
+    // Instant search filter for phone rosters
+    if (runnerFilterInput) {
+        runnerFilterInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (clearFilterBtn) {
+                clearFilterBtn.style.display = val ? 'inline-block' : 'none';
+            }
+            runnerCols.forEach(col => {
+                const name = col.getAttribute('data-name') || '';
+                if (!val || name.includes(val)) {
+                    col.style.display = '';
+                } else {
+                    col.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', function() {
+            runnerFilterInput.value = '';
+            this.style.display = 'none';
+            runnerCols.forEach(col => col.style.display = '');
+            runnerFilterInput.focus();
+        });
+    }
+
+    // Initialize visuals on page load
+    updateCardVisuals();
+});
+</script>
+
+<style>
+.cursor-pointer {
+    cursor: pointer;
+}
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+.runner-card:hover {
+    border-color: var(--nnck-yellow) !important;
+}
+@media (max-width: 576px) {
+    .btn-nnck-gradient, .btn-outline-secondary {
+        width: 100%;
+    }
+}
+</style>
 {% endblock %}

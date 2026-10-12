@@ -601,7 +601,7 @@ def coach_verify_submission_view(request, submission_id):
 
 @login_required
 def coach_assign_workout_view(request):
-    """Coach uploads workout for a runner or all runners on daily basis."""
+    """Coach uploads workout for a runner, group of runners, or all club runners."""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if not profile.is_coach:
         messages.error(request, "Coach access required.")
@@ -626,15 +626,131 @@ def coach_assign_workout_view(request):
                 target = "All Club Runners (Broadcast)"
 
             messages.success(request, f"Workout '{workout.title}' successfully assigned to {target} for {workout.scheduled_date}!")
-            return redirect('coach_portal')
+            return redirect('coach_workouts_list')
+        else:
+            messages.error(request, "Unable to upload workout. Please review the highlighted fields below.")
     else:
         runner_id = request.GET.get('runner_id')
+        scheduled_date_param = request.GET.get('scheduled_date')
         initial = {}
-        if runner_id:
-            initial['runner'] = runner_id
+        if runner_id and runner_id.isdigit():
+            initial['target_type'] = 'group'
+            initial['runners'] = [int(runner_id)]
+        if scheduled_date_param:
+            try:
+                initial['scheduled_date'] = datetime.strptime(scheduled_date_param, '%Y-%m-%d').date()
+            except ValueError:
+                pass
         form = WorkoutAssignmentForm(initial=initial)
 
-    return render(request, 'club/coach_assign_workout.html', {'form': form})
+    athletes = User.objects.filter(
+        is_active=True
+    ).exclude(
+        profile__role='coach'
+    ).exclude(
+        is_staff=True
+    ).exclude(
+        is_superuser=True
+    ).select_related('profile').order_by('first_name', 'username')
+
+    selected_runner_ids = []
+    if request.method == 'POST':
+        selected_runner_ids = [int(x) for x in request.POST.getlist('runners') if x.isdigit()]
+        target_type = request.POST.get('target_type', 'all')
+    else:
+        runner_id = request.GET.get('runner_id')
+        if runner_id and runner_id.isdigit():
+            selected_runner_ids = [int(runner_id)]
+            target_type = 'group'
+        else:
+            selected_runner_ids = []
+            target_type = 'all'
+
+    return render(request, 'club/coach_assign_workout.html', {
+        'form': form,
+        'athletes': athletes,
+        'selected_runner_ids': selected_runner_ids,
+        'target_type': target_type,
+        'is_edit': False,
+    })
+
+
+@login_required
+def coach_edit_workout_view(request, workout_id):
+    """Coach updates/edits an existing assigned workout."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if not profile.is_coach:
+        messages.error(request, "Coach access required.")
+        return redirect('dashboard')
+
+    workout = get_object_or_404(WorkoutAssignment, id=workout_id)
+
+    if request.method == 'POST':
+        form = WorkoutAssignmentForm(request.POST, instance=workout)
+        if form.is_valid():
+            workout = form.save(commit=False)
+            workout.coach = request.user
+            workout.save()
+            form.save_m2m()
+
+            selected_group = workout.runners.all()
+            if selected_group.exists():
+                names = ", ".join([u.first_name or u.username for u in selected_group])
+                target = f"Group of {selected_group.count()} runners ({names})"
+            elif workout.runner:
+                target = workout.runner.get_full_name() or workout.runner.username
+            else:
+                target = "All Club Runners (Broadcast)"
+
+            messages.success(request, f"Workout '{workout.title}' updated successfully for {target} on {workout.scheduled_date}!")
+            return redirect('coach_workouts_list')
+        else:
+            messages.error(request, "Unable to update workout. Please review the highlighted fields below.")
+    else:
+        initial = {}
+        if workout.runners.exists():
+            initial['target_type'] = 'group'
+            initial['runners'] = list(workout.runners.values_list('id', flat=True))
+        elif workout.runner:
+            initial['target_type'] = 'group'
+            initial['runners'] = [workout.runner.id]
+        else:
+            initial['target_type'] = 'all'
+
+        form = WorkoutAssignmentForm(instance=workout, initial=initial)
+
+    athletes = User.objects.filter(
+        is_active=True
+    ).exclude(
+        profile__role='coach'
+    ).exclude(
+        is_staff=True
+    ).exclude(
+        is_superuser=True
+    ).select_related('profile').order_by('first_name', 'username')
+
+    if request.method == 'POST':
+        selected_runner_ids = [int(x) for x in request.POST.getlist('runners') if x.isdigit()]
+        target_type = request.POST.get('target_type', 'all')
+    else:
+        if workout.runners.exists():
+            selected_runner_ids = list(workout.runners.values_list('id', flat=True))
+            target_type = 'group'
+        elif workout.runner:
+            selected_runner_ids = [workout.runner.id]
+            target_type = 'group'
+        else:
+            selected_runner_ids = []
+            target_type = 'all'
+
+    return render(request, 'club/coach_assign_workout.html', {
+        'form': form,
+        'athletes': athletes,
+        'selected_runner_ids': selected_runner_ids,
+        'target_type': target_type,
+        'is_edit': True,
+        'workout': workout,
+    })
 
 
 @login_required

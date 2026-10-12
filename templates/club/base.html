@@ -163,9 +163,13 @@
             .table-responsive {
                 border-radius: 10px;
             }
-            /* Mobile bottom bar padding so footer doesn't overlap */
+            /* Mobile bottom bar padding so footer and forms don't overlap */
             body {
-                padding-bottom: 60px;
+                padding-bottom: 85px;
+            }
+            /* Prevent iOS Safari from auto-zooming on focus */
+            .form-control, .form-select {
+                font-size: 16px !important;
             }
         }
 

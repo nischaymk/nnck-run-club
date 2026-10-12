@@ -88,6 +88,16 @@ class UserProfileForm(forms.ModelForm):
 
 
 class WorkoutAssignmentForm(forms.ModelForm):
+    target_type = forms.ChoiceField(
+        choices=[
+            ('all', 'All Club Runners (Broadcast)'),
+            ('group', 'Specific Runner(s) or Group'),
+        ],
+        required=False,
+        initial='all',
+        widget=forms.HiddenInput()
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Athletes/runners queryset
@@ -99,18 +109,78 @@ class WorkoutAssignmentForm(forms.ModelForm):
             is_staff=True
         ).exclude(
             is_superuser=True
-        ).order_by('first_name', 'username')
+        ).select_related('profile').order_by('first_name', 'username')
         
         self.fields['runners'].queryset = athlete_qs
         self.fields['runners'].required = False
-        self.fields['runners'].help_text = "Hold Ctrl / Cmd to select multiple athletes for this group workout. Leave empty if broadcasting to all runners."
+        self.fields['runners'].widget = forms.CheckboxSelectMultiple()
         
         self.fields['runner'].queryset = athlete_qs
         self.fields['runner'].required = False
-        self.fields['runner'].empty_label = "None (use group selection or broadcast)"
+        self.fields['runner'].widget = forms.HiddenInput()
 
         tomorrow = date.today() + timedelta(days=1)
         self.fields['scheduled_date'].initial = tomorrow
+
+        # Handle existing instance initial state
+        if self.instance and self.instance.pk:
+            if self.instance.runners.exists():
+                self.fields['target_type'].initial = 'group'
+                self.fields['runners'].initial = list(self.instance.runners.values_list('id', flat=True))
+            elif self.instance.runner:
+                self.fields['target_type'].initial = 'group'
+                self.fields['runners'].initial = [self.instance.runner.id]
+            else:
+                self.fields['target_type'].initial = 'all'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        target_type = cleaned_data.get('target_type') or 'all'
+        runners = cleaned_data.get('runners') or []
+
+        if target_type == 'group':
+            if not runners:
+                self.add_error('runners', 'Please select at least one runner from the list, or choose "Broadcast to All Club Runners".')
+            elif len(runners) == 1:
+                cleaned_data['runner'] = runners[0]
+            else:
+                cleaned_data['runner'] = None
+        else:
+            cleaned_data['runners'] = []
+            cleaned_data['runner'] = None
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        target_type = self.cleaned_data.get('target_type') or 'all'
+        runners = self.cleaned_data.get('runners') or []
+
+        if target_type == 'group':
+            if len(runners) == 1:
+                instance.runner = runners[0]
+            else:
+                instance.runner = None
+        else:
+            instance.runner = None
+
+        if commit:
+            instance.save()
+            if target_type == 'group':
+                instance.runners.set(runners)
+            else:
+                instance.runners.clear()
+        else:
+            old_save_m2m = self.save_m2m
+            def custom_save_m2m():
+                old_save_m2m()
+                if target_type == 'group':
+                    instance.runners.set(runners)
+                else:
+                    instance.runners.clear()
+            self.save_m2m = custom_save_m2m
+
+        return instance
 
     class Meta:
         model = WorkoutAssignment
@@ -120,17 +190,15 @@ class WorkoutAssignmentForm(forms.ModelForm):
             'intensity_level', 'description', 'notes'
         ]
         widgets = {
-            'runners': forms.SelectMultiple(attrs={'class': 'form-select bg-dark border-secondary text-white', 'size': '5'}),
-            'runner': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white'}),
-            'category': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white'}),
-            'title': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. Group A: 10K Progressive Tempo'}),
-            'scheduled_date': forms.DateInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'type': 'date'}),
-            'target_distance': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'km', 'step': '0.1'}),
-            'target_duration': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'minutes'}),
-            'target_pace': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. 5:10/km'}),
-            'intensity_level': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white'}),
-            'description': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-white', 'rows': 4, 'placeholder': 'Step-by-step workout guide, intervals, reps, heart rate zones...'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-white', 'rows': 2, 'placeholder': 'Coach advice, warmup guidance, hydration...'}),
+            'category': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white', 'style': 'font-size: 16px; min-height: 44px;'}),
+            'title': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. Group A: 10K Progressive Tempo', 'style': 'font-size: 16px;'}),
+            'scheduled_date': forms.DateInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'type': 'date', 'style': 'font-size: 16px; min-height: 44px;'}),
+            'target_distance': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. 5.0', 'step': '0.1', 'inputmode': 'decimal', 'style': 'font-size: 16px;'}),
+            'target_duration': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'minutes', 'step': '1', 'inputmode': 'numeric', 'style': 'font-size: 16px;'}),
+            'target_pace': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. 5:10/km', 'style': 'font-size: 16px;'}),
+            'intensity_level': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white', 'style': 'font-size: 16px; min-height: 44px;'}),
+            'description': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-white', 'rows': 4, 'placeholder': 'Step-by-step workout guidance, intervals, reps, heart rate zones...', 'style': 'font-size: 16px;'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control bg-dark border-secondary text-white', 'rows': 2, 'placeholder': 'Coach advice, warmup guidance, hydration...', 'style': 'font-size: 16px;'}),
         }
 
 
