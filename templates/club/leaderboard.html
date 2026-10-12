@@ -26,29 +26,34 @@
 
     <!-- Week Filter & Quick Navigation -->
     <div class="card card-nnck p-3 mb-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <!-- Week Quick Buttons -->
-            <div class="d-flex align-items-center gap-2">
-                <a href="?date={{ prev_week|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary text-light">
-                    <i class="bi bi-chevron-left me-1"></i> Prev Week
-                </a>
-                <a href="?date={{ today|date:'Y-m-d' }}" class="btn btn-sm {% if is_current_week %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary text-light{% endif %}">
-                    This Week
-                </a>
-                <a href="?date={{ next_week|date:'Y-m-d' }}" class="btn btn-sm btn-outline-secondary text-light">
-                    Next Week <i class="bi bi-chevron-right ms-1"></i>
-                </a>
+        <div class="row align-items-center g-3">
+            <!-- Left: Week Navigation Controls -->
+            <div class="col-12 col-md-auto">
+                <div class="btn-group btn-group-sm w-100 w-md-auto" role="group">
+                    <a href="?date={{ prev_week|date:'Y-m-d' }}" class="btn btn-outline-secondary text-light">
+                        <i class="bi bi-chevron-left"></i> Prev
+                    </a>
+                    <a href="?date={{ today|date:'Y-m-d' }}" class="btn {% if is_current_week %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary text-light{% endif %}">
+                        This Week
+                    </a>
+                    <a href="?date={{ next_week|date:'Y-m-d' }}" class="btn btn-outline-secondary text-light">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
             </div>
 
-            <!-- Date Picker for specific week -->
-            <form method="GET" class="d-flex align-items-center gap-2">
-                <label class="text-secondary small fw-semibold text-nowrap mb-0 d-none d-sm-inline">Select Date:</label>
-                <div class="input-group input-group-sm" style="width: auto;">
-                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-calendar3"></i></span>
-                    <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.submit()" class="form-control bg-dark border-secondary text-white" style="max-width: 155px;">
-                </div>
-                <noscript><button type="submit" class="btn btn-sm btn-warning">Filter</button></noscript>
-            </form>
+            <!-- Right: Date Picker Form -->
+            <div class="col-12 col-md-auto ms-md-auto">
+                <form method="GET" class="d-flex align-items-center gap-2">
+                    <div class="input-group input-group-sm w-100" style="max-width: 240px;">
+                        <span class="input-group-text bg-dark border-secondary text-secondary">
+                            <i class="bi bi-calendar3"></i>
+                        </span>
+                        <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.submit()" class="form-control bg-dark border-secondary text-white">
+                        <button type="submit" class="btn btn-warning fw-bold px-3 d-sm-none">Go</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

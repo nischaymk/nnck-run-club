@@ -49,6 +49,8 @@
                         {{ profile.bio|default:"No bio added yet. Edit your profile to share your running story!"|truncatechars:120 }}
                     </div>
                 {% endif %}
+            </div>
+
             <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 pt-2 pt-lg-0 border-top border-lg-top-0 border-secondary border-opacity-25">
                 <a href="{% url 'club_runners' %}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 shadow-sm py-1 px-3">
                     <i class="bi bi-people"></i> Meet Club Runners
