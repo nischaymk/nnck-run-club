@@ -108,10 +108,20 @@
                 {% endif %}
                 {% endif %}
 
-                <div class="mt-4 pt-3 border-top border-secondary text-end">
+                <div class="mt-4 pt-3 border-top border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <a href="{% url 'club_runners' %}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i> Back to Runners Directory
                     </a>
+                    {% if user.is_authenticated and user.id == target_user.id and target_profile.is_coach %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Edit Profile
+                        </a>
+                        <a href="/admin/" target="_blank" class="btn btn-outline-secondary text-light btn-sm">
+                            <i class="bi bi-shield-lock me-1 text-warning"></i> Admin Portal
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
             </div>

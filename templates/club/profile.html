@@ -9,18 +9,30 @@
         <div class="col-lg-8">
             
             <div class="card card-nnck p-4 p-md-5">
-                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-secondary">
-                    {% if profile.profile_photo %}
-                        <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;">
-                    {% else %}
-                        <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 2rem;">
-                            {{ user.first_name|first|default:user.username|first|upper }}
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom border-secondary">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if profile.profile_photo %}
+                            <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 2rem;">
+                                {{ user.first_name|first|default:user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="text-white fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h3>
+                            <p class="text-secondary small mb-0">Role: <strong class="text-warning text-capitalize">{{ profile.role }}</strong> &bull; Member of NNCK Run Club</p>
                         </div>
-                    {% endif %}
-                    <div>
-                        <h3 class="text-white fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h3>
-                        <p class="text-secondary small mb-0">Role: <strong class="text-warning text-capitalize">{{ profile.role }}</strong> &bull; Member of NNCK Run Club</p>
                     </div>
+                    {% if profile.is_coach %}
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="/admin/" target="_blank" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Admin Portal
+                        </a>
+                        <a href="{% url 'coach_portal' %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-speedometer2 me-1"></i> Coach Portal
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <form method="POST" enctype="multipart/form-data">

@@ -395,7 +395,8 @@
                             <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Edit My Profile & Bio</a></li>
                             <li><a class="dropdown-item" href="{% url 'runner_detail' user.id %}"><i class="bi bi-eye me-2"></i>View Public Athlete Card</a></li>
                             {% if user.profile.is_coach %}
-                            <li><a class="dropdown-item" href="{% url 'coach_portal' %}"><i class="bi bi-shield-check me-2"></i>Coach Verification Portal</a></li>
+                            <li><a class="dropdown-item" href="{% url 'coach_portal' %}"><i class="bi bi-shield-check me-2 text-warning"></i>Coach Verification Portal</a></li>
+                            <li><a class="dropdown-item" href="/admin/" target="_blank"><i class="bi bi-shield-lock me-2 text-warning"></i>Admin Portal</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider border-secondary"></li>
                             <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
@@ -445,6 +446,12 @@
                                 <span>Coach Verification Portal</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-2 d-flex align-items-center text-warning" href="/admin/" target="_blank">
+                                <i class="bi bi-shield-lock me-2 fs-5"></i>
+                                <span>Admin Portal</span>
+                            </a>
+                        </li>
                         {% endif %}
                         <li class="nav-item mt-2 pt-2 border-top border-secondary border-opacity-50">
                             <a class="nav-link py-2 text-danger d-flex align-items-center" href="{% url 'logout' %}">
@@ -456,9 +463,6 @@
                 </div>
                 {% else %}
                 <div class="ms-auto d-flex align-items-center gap-2">
-                    <a href="/admin/" class="btn btn-outline-secondary btn-sm text-light border-secondary me-2">
-                        <i class="bi bi-shield-lock me-1"></i> Admin Portal
-                    </a>
                     <a href="{% url 'index' %}" class="btn btn-nnck-gradient btn-sm">Member Sign In</a>
                 </div>
                 {% endif %}
@@ -525,7 +529,6 @@
                         {% else %}
                             <li class="mb-2"><a href="{% url 'index' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard</a></li>
                             <li class="mb-2"><a href="{% url 'password_reset' %}" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-key me-1"></i> Forgot Password</a></li>
-                            <li class="mb-2"><a href="/admin/" class="text-secondary text-decoration-none hover-warning"><i class="bi bi-shield-lock me-1"></i> Coach Admin Portal</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -547,21 +550,19 @@
                     </div>
                 </div>
 
-                <!-- Col 4: Disciplines & Direct Access -->
+                <!-- Col 4: Disciplines -->
                 <div class="col-lg-2 col-md-6">
                     <h6 class="text-white fw-bold mb-3 text-uppercase tracking-wider small">Disciplines</h6>
-                    <div class="d-flex flex-wrap gap-1 mb-3">
+                    <div class="d-flex flex-wrap gap-1 mb-2">
                         <span class="badge bg-dark border border-secondary text-secondary">Intervals</span>
                         <span class="badge bg-dark border border-secondary text-secondary">Tempo Run</span>
                         <span class="badge bg-dark border border-secondary text-secondary">Easy Run</span>
                         <span class="badge bg-dark border border-secondary text-secondary">Strength</span>
                         <span class="badge bg-dark border border-secondary text-secondary">Warmup</span>
                     </div>
-                    <div>
-                        <a href="/admin/" class="btn btn-sm btn-outline-secondary text-light w-100 py-1" style="font-size: 0.78rem;">
-                            <i class="bi bi-shield-lock me-1"></i> Admin Portal
-                        </a>
-                    </div>
+                    <p class="text-secondary small mb-0" style="font-size: 0.75rem;">
+                        Structured routines for runners of all levels.
+                    </p>
                 </div>
 
             </div>
