@@ -11,8 +11,16 @@
             <!-- Runner Profile Card -->
             <div class="card card-nnck p-4 p-md-5 mb-4">
                 <div class="d-flex flex-wrap align-items-center gap-4 mb-4 pb-4 border-bottom border-secondary">
-                    {% if target_profile.profile_photo %}
-                        <img src="{{ target_profile.profile_photo.url }}" alt="{{ target_user.username }}" width="110" height="110" class="rounded-circle border border-3 border-warning" style="object-fit: cover;">
+                    {% if target_profile.avatar_url %}
+                        <img src="{{ target_profile.avatar_url }}" alt="{{ target_user.username }}" width="110" height="110" class="rounded-circle border border-3 border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-circle" style="display: none; width: 110px; height: 110px; font-size: 2.8rem;">
+                            {{ target_user.first_name|first|default:target_user.username|first|upper }}
+                        </div>
+                    {% elif target_profile.profile_photo %}
+                        <img src="{{ target_profile.profile_photo.url }}" alt="{{ target_user.username }}" width="110" height="110" class="rounded-circle border border-3 border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-circle" style="display: none; width: 110px; height: 110px; font-size: 2.8rem;">
+                            {{ target_user.first_name|first|default:target_user.username|first|upper }}
+                        </div>
                     {% else %}
                         <div class="avatar-circle" style="width: 110px; height: 110px; font-size: 2.8rem;">
                             {{ target_user.first_name|first|default:target_user.username|first|upper }}

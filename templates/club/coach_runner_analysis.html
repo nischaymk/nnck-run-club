@@ -10,8 +10,16 @@
     <div class="card card-nnck p-4 mb-4">
         <div class="row align-items-center g-3">
             <div class="col-auto">
-                {% if runner_profile.profile_photo %}
-                    <img src="{{ runner_profile.profile_photo.url }}" alt="Runner" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;">
+                {% if runner_profile.avatar_url %}
+                    <img src="{{ runner_profile.avatar_url }}" alt="Runner" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-circle" style="display: none; width: 75px; height: 75px; font-size: 1.8rem;">
+                        {{ runner.first_name|first|default:runner.username|first|upper }}
+                    </div>
+                {% elif runner_profile.profile_photo %}
+                    <img src="{{ runner_profile.profile_photo.url }}" alt="Runner" width="75" height="75" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-circle" style="display: none; width: 75px; height: 75px; font-size: 1.8rem;">
+                        {{ runner.first_name|first|default:runner.username|first|upper }}
+                    </div>
                 {% else %}
                     <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 1.8rem;">
                         {{ runner.first_name|first|default:runner.username|first|upper }}

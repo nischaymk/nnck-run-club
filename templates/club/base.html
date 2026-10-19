@@ -379,8 +379,16 @@
                 <div class="d-none d-lg-flex align-items-center gap-3">
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 text-light border-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {% if user.profile.profile_photo %}
-                                <img src="{{ user.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" style="object-fit: cover;">
+                            {% if user.profile.avatar_url %}
+                                <img src="{{ user.profile.avatar_url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="avatar-circle" style="display: none; width: 32px; height: 32px; font-size: 0.85rem;">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                            {% elif user.profile.profile_photo %}
+                                <img src="{{ user.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="avatar-circle" style="display: none; width: 32px; height: 32px; font-size: 0.85rem;">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
                             {% else %}
                                 <div class="avatar-circle" style="width: 32px; height: 32px; font-size: 0.85rem;">
                                     {{ user.first_name|first|default:user.username|first|upper }}
@@ -407,8 +415,16 @@
                 <!-- Mobile User Drawer Section (Phones & Tablets - Integrated, No Floating Dropdown) -->
                 <div class="d-lg-none mt-3 pt-3 border-top border-secondary">
                     <div class="d-flex align-items-center gap-3 px-2 mb-3">
-                        {% if user.profile.profile_photo %}
-                            <img src="{{ user.profile.profile_photo.url }}" alt="Profile" width="40" height="40" class="rounded-circle border border-warning" style="object-fit: cover;">
+                        {% if user.profile.avatar_url %}
+                            <img src="{{ user.profile.avatar_url }}" alt="Profile" width="40" height="40" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="avatar-circle" style="display: none; width: 40px; height: 40px; font-size: 1rem;">
+                                {{ user.first_name|first|default:user.username|first|upper }}
+                            </div>
+                        {% elif user.profile.profile_photo %}
+                            <img src="{{ user.profile.profile_photo.url }}" alt="Profile" width="40" height="40" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="avatar-circle" style="display: none; width: 40px; height: 40px; font-size: 1rem;">
+                                {{ user.first_name|first|default:user.username|first|upper }}
+                            </div>
                         {% else %}
                             <div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1rem;">
                                 {{ user.first_name|first|default:user.username|first|upper }}

@@ -142,8 +142,16 @@
                                                style="width: 1.25rem; height: 1.25rem; cursor: pointer;"
                                                {% if athlete.id in selected_runner_ids %}checked{% endif %}>
                                         
-                                        {% if athlete.profile.profile_photo %}
-                                            <img src="{{ athlete.profile.profile_photo.url }}" alt="{{ athlete.username }}" width="34" height="34" class="rounded-circle" style="object-fit: cover;">
+                                        {% if athlete.profile.avatar_url %}
+                                            <img src="{{ athlete.profile.avatar_url }}" alt="{{ athlete.username }}" width="34" height="34" class="rounded-circle" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="avatar-circle" style="display: none; width: 34px; height: 34px; min-width: 34px; font-size: 0.8rem;">
+                                                {{ athlete.first_name|first|default:athlete.username|first|upper }}
+                                            </div>
+                                        {% elif athlete.profile.profile_photo %}
+                                            <img src="{{ athlete.profile.profile_photo.url }}" alt="{{ athlete.username }}" width="34" height="34" class="rounded-circle" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="avatar-circle" style="display: none; width: 34px; height: 34px; min-width: 34px; font-size: 0.8rem;">
+                                                {{ athlete.first_name|first|default:athlete.username|first|upper }}
+                                            </div>
                                         {% else %}
                                             <div class="avatar-circle" style="width: 34px; height: 34px; min-width: 34px; font-size: 0.8rem;">
                                                 {{ athlete.first_name|first|default:athlete.username|first|upper }}

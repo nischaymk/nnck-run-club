@@ -25,8 +25,16 @@
                 <div>
                     <!-- Athlete Header -->
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        {% if runner.profile.profile_photo %}
-                            <img src="{{ runner.profile.profile_photo.url }}" alt="{{ runner.username }}" width="65" height="65" class="rounded-circle border border-warning" style="object-fit: cover;">
+                        {% if runner.profile.avatar_url %}
+                            <img src="{{ runner.profile.avatar_url }}" alt="{{ runner.username }}" width="65" height="65" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="avatar-circle" style="display: none; width: 65px; height: 65px; font-size: 1.6rem;">
+                                {{ runner.first_name|first|default:runner.username|first|upper }}
+                            </div>
+                        {% elif runner.profile.profile_photo %}
+                            <img src="{{ runner.profile.profile_photo.url }}" alt="{{ runner.username }}" width="65" height="65" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="avatar-circle" style="display: none; width: 65px; height: 65px; font-size: 1.6rem;">
+                                {{ runner.first_name|first|default:runner.username|first|upper }}
+                            </div>
                         {% else %}
                             <div class="avatar-circle" style="width: 65px; height: 65px; font-size: 1.6rem;">
                                 {{ runner.first_name|first|default:runner.username|first|upper }}

@@ -75,8 +75,16 @@
                             <!-- Avatar & Name -->
                             <div class="d-flex align-items-center gap-2 text-truncate flex-grow-1">
                                 <a href="{% url 'runner_detail' entry.athlete.id %}" class="flex-shrink-0">
-                                    {% if entry.athlete.profile.profile_photo %}
-                                        <img src="{{ entry.athlete.profile.profile_photo.url }}" alt="{{ entry.athlete.username }}" width="42" height="42" class="rounded-circle border border-warning" style="object-fit: cover;">
+                                    {% if entry.athlete.profile.avatar_url %}
+                                        <img src="{{ entry.athlete.profile.avatar_url }}" alt="{{ entry.athlete.username }}" width="42" height="42" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="avatar-circle" style="display: none; width: 42px; height: 42px; min-width: 42px; font-size: 0.95rem;">
+                                            {{ entry.athlete.first_name|first|default:entry.athlete.username|first|upper }}
+                                        </div>
+                                    {% elif entry.athlete.profile.profile_photo %}
+                                        <img src="{{ entry.athlete.profile.profile_photo.url }}" alt="{{ entry.athlete.username }}" width="42" height="42" class="rounded-circle border border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="avatar-circle" style="display: none; width: 42px; height: 42px; min-width: 42px; font-size: 0.95rem;">
+                                            {{ entry.athlete.first_name|first|default:entry.athlete.username|first|upper }}
+                                        </div>
                                     {% else %}
                                         <div class="avatar-circle" style="width: 42px; height: 42px; min-width: 42px; font-size: 0.95rem;">
                                             {{ entry.athlete.first_name|first|default:entry.athlete.username|first|upper }}

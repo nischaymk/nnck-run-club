@@ -85,10 +85,29 @@ def seed_coach():
     coach.is_superuser = True
     coach.save()
 
-    profile, _ = UserProfile.objects.get_or_create(user=coach)
+    profile, profile_created = UserProfile.objects.get_or_create(user=coach)
     profile.role = 'coach'
-    profile.profile_photo = 'profiles/chandrakanth_coach.png'
-    profile.bio = """Head Coach & Founder · Nanu Nimma CK Run Club
+    
+    # Only assign default photo if no photo has been set yet
+    if profile_created or not profile.profile_photo:
+        profile.profile_photo = 'profiles/chandrakanth_coach.png'
+
+    # Pre-populate permanent database base64 avatar for Coach Chandrakanth
+    if not profile.profile_photo_base64:
+        import os
+        import base64
+        coach_img_path = os.path.join(os.path.dirname(__file__), 'media', 'profiles', 'chandrakanth_coach.png')
+        if os.path.exists(coach_img_path):
+            try:
+                with open(coach_img_path, 'rb') as f:
+                    b64 = base64.b64encode(f.read()).decode('utf-8')
+                    profile.profile_photo_base64 = f"data:image/png;base64,{b64}"
+            except Exception as e:
+                print(f"Note: Could not read coach image for base64 seed: {e}")
+
+    # Only assign default bio if none exists
+    if profile_created or not profile.bio:
+        profile.bio = """Head Coach & Founder · Nanu Nimma CK Run Club
 
 Nanu Nimma CK is both a competitive runner and a running coach based in Bengaluru. His journey began as an athlete, and through years of consistent training and racing, he developed a deep understanding of what it takes to improve as a runner.
 
@@ -110,7 +129,34 @@ Run Together. Grow Together."""
     profile.save()
     print("Verified Head Coach CHANDRAKANTH M profile.")
 
+
+def sync_existing_avatars():
+    """Migrates any existing on-disk profile images to database base64 so they never disappear on deploy."""
+    from PIL import Image
+    import io, base64
+    synced = 0
+    for prof in UserProfile.objects.filter(profile_photo_base64__isnull=True).exclude(profile_photo=''):
+        try:
+            if prof.profile_photo and os.path.exists(prof.profile_photo.path):
+                with open(prof.profile_photo.path, 'rb') as f:
+                    img = Image.open(f)
+                    img.thumbnail((300, 300))
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=85)
+                    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+                    prof.profile_photo_base64 = f"data:image/jpeg;base64,{b64}"
+                    prof.save(update_fields=['profile_photo_base64'])
+                    synced += 1
+        except Exception:
+            pass
+    if synced > 0:
+        print(f"Synced {synced} user avatar(s) to permanent database storage.")
+
+
 if __name__ == '__main__':
     seed_categories()
     seed_coach()
+    sync_existing_avatars()
     print("Initial NNCK seed completed successfully.")

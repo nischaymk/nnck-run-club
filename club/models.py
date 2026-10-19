@@ -23,6 +23,7 @@ class UserProfile(models.Model):
     date_of_birth = models.DateField(blank=True, null=True)
     emergency_contact = models.CharField(max_length=100, blank=True, null=True)
     profile_photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    profile_photo_base64 = models.TextField(blank=True, null=True, help_text="Permanent database-persisted avatar")
     bio = models.TextField(blank=True, null=True, help_text="Runner bio, motivation, or introduction")
     
     # Running goals
@@ -35,6 +36,53 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} ({self.get_role_display()})"
+
+    @property
+    def avatar_url(self):
+        """
+        Permanent avatar URL immune to cloud ephemeral disk wipes.
+        1. Returns base64 data URI stored in database if available.
+        2. Falls back to profile_photo.url if available.
+        3. Returns None otherwise.
+        """
+        if self.profile_photo_base64:
+            return self.profile_photo_base64
+        if self.profile_photo:
+            try:
+                return self.profile_photo.url
+            except Exception:
+                pass
+        return None
+
+    def save(self, *args, **kwargs):
+        # Automatically generate permanent base64 thumbnail from profile_photo
+        if self.profile_photo:
+            try:
+                from PIL import Image
+                import io
+                import base64
+
+                f = getattr(self.profile_photo, 'file', None)
+                if f:
+                    try:
+                        f.seek(0)
+                    except Exception:
+                        pass
+                    img = Image.open(f)
+                    img.thumbnail((300, 300))
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=85)
+                    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+                    self.profile_photo_base64 = f"data:image/jpeg;base64,{b64}"
+                    try:
+                        f.seek(0)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
 
     @property
     def is_coach(self):
@@ -196,14 +244,27 @@ class WorkoutSubmission(models.Model):
         return self.avg_pace or "--"
 
     def get_all_screenshots(self):
-        """Returns list of all image URLs (up to 10 photos)"""
-        imgs = [photo.image.url for photo in self.additional_screenshots.all() if photo.image]
+        """Returns list of all image URLs (up to 10 photos), preferring permanent database copies"""
+        imgs = []
+        for photo in self.additional_screenshots.all():
+            u = photo.photo_url
+            if u:
+                imgs.append(u)
         if not imgs and self.screenshot:
-            imgs.append(self.screenshot.url)
+            try:
+                imgs.append(self.screenshot.url)
+            except Exception:
+                pass
             if self.screenshot_2:
-                imgs.append(self.screenshot_2.url)
+                try:
+                    imgs.append(self.screenshot_2.url)
+                except Exception:
+                    pass
             if self.screenshot_3:
-                imgs.append(self.screenshot_3.url)
+                try:
+                    imgs.append(self.screenshot_3.url)
+                except Exception:
+                    pass
         return imgs
 
 
@@ -211,7 +272,49 @@ class ProofScreenshot(models.Model):
     """Allows uploading up to 10 screenshots per workout submission"""
     submission = models.ForeignKey(WorkoutSubmission, on_delete=models.CASCADE, related_name='additional_screenshots')
     image = models.ImageField(upload_to='workout_proofs/')
+    image_base64 = models.TextField(blank=True, null=True, help_text="Permanent database-persisted screenshot")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['created_at']
+
+    @property
+    def photo_url(self):
+        if self.image_base64:
+            return self.image_base64
+        if self.image:
+            try:
+                return self.image.url
+            except Exception:
+                pass
+        return ""
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            try:
+                from PIL import Image
+                import io
+                import base64
+
+                f = getattr(self.image, 'file', None)
+                if f:
+                    try:
+                        f.seek(0)
+                    except Exception:
+                        pass
+                    img = Image.open(f)
+                    img.thumbnail((1000, 1000))
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=80)
+                    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+                    self.image_base64 = f"data:image/jpeg;base64,{b64}"
+                    try:
+                        f.seek(0)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
+

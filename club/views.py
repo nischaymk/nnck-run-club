@@ -376,8 +376,31 @@ def profile_view(request):
             request.user.email = form.cleaned_data.get('email', request.user.email)
             request.user.save()
 
-            form.save()
-            messages.success(request, "Your profile photo, bio, and settings have been updated!")
+            saved_profile = form.save(commit=False)
+            uploaded_photo = request.FILES.get('profile_photo')
+            if uploaded_photo:
+                try:
+                    from PIL import Image
+                    import io
+                    import base64
+                    img = Image.open(uploaded_photo)
+                    img.thumbnail((300, 300))
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=85)
+                    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+                    saved_profile.profile_photo_base64 = f"data:image/jpeg;base64,{b64}"
+                    try:
+                        uploaded_photo.seek(0)
+                    except Exception:
+                        pass
+                except Exception as e:
+                    logger.warning(f"Failed to generate base64 for profile photo: {e}")
+            saved_profile.save()
+            form.save_m2m()
+
+            messages.success(request, "Your profile photo, bio, and settings have been updated and permanently saved!")
             return redirect('profile')
     else:
         initial_data = {

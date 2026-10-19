@@ -51,8 +51,16 @@
                             <p class="text-secondary small mb-2">Scheduled Date: <strong class="text-light">{{ submission.assignment.scheduled_date|date:"l, d M Y" }}</strong></p>
                             
                             <div class="d-flex align-items-center gap-2 pt-2 border-top border-secondary">
-                                {% if submission.runner.profile.profile_photo %}
-                                    <img src="{{ submission.runner.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning">
+                                {% if submission.runner.profile.avatar_url %}
+                                    <img src="{{ submission.runner.profile.avatar_url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="avatar-circle" style="display: none; width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ submission.runner.first_name|first|default:submission.runner.username|first|upper }}
+                                    </div>
+                                {% elif submission.runner.profile.profile_photo %}
+                                    <img src="{{ submission.runner.profile.profile_photo.url }}" alt="Profile" width="32" height="32" class="rounded-circle border border-warning" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="avatar-circle" style="display: none; width: 32px; height: 32px; font-size: 0.8rem;">
+                                        {{ submission.runner.first_name|first|default:submission.runner.username|first|upper }}
+                                    </div>
                                 {% else %}
                                     <div class="avatar-circle" style="width: 32px; height: 32px; font-size: 0.8rem;">
                                         {{ submission.runner.first_name|first|default:submission.runner.username|first|upper }}

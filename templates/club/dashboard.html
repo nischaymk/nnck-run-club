@@ -11,8 +11,16 @@
         <div class="row align-items-center g-3">
             <div class="col-auto">
                 <div class="position-relative">
-                    {% if profile.profile_photo %}
-                        <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-2 border-warning" style="object-fit: cover;">
+                    {% if profile.avatar_url %}
+                        <img src="{{ profile.avatar_url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-2 border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-circle" style="display: none; width: 75px; height: 75px; font-size: 2rem;">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
+                    {% elif profile.profile_photo %}
+                        <img src="{{ profile.profile_photo.url }}" alt="Profile" width="75" height="75" class="rounded-circle border border-2 border-warning" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="avatar-circle" style="display: none; width: 75px; height: 75px; font-size: 2rem;">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
                     {% else %}
                         <div class="avatar-circle" style="width: 75px; height: 75px; font-size: 2rem;">
                             {{ user.first_name|first|default:user.username|first|upper }}
