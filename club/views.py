@@ -188,25 +188,35 @@ def dashboard_view(request):
     
     today = date.today()
     tomorrow = today + timedelta(days=1)
+    now = timezone.now()
     
     # Workout filter: directly assigned, or part of assigned group, or broadcast to all
     assignment_filter = Q(runner=user) | Q(runners=user) | (Q(runner__isnull=True) & Q(runners__isnull=True))
 
-    # Next day workouts assigned by coach
+    # Published filter: workout is live (no scheduled release time, or release time has passed)
+    published_filter = Q(publish_at__isnull=True) | Q(publish_at__lte=now)
+
+    # Next day workouts assigned by coach (already published/released)
     next_day_workouts = WorkoutAssignment.objects.filter(
         scheduled_date=tomorrow
-    ).filter(assignment_filter).distinct()
+    ).filter(assignment_filter).filter(published_filter).distinct()
 
-    # Today workouts assigned by coach
+    # Scheduled but unreleased tomorrow workouts (for teaser notice)
+    upcoming_unreleased_tomorrow = WorkoutAssignment.objects.filter(
+        scheduled_date=tomorrow,
+        publish_at__gt=now
+    ).filter(assignment_filter).distinct().order_by('publish_at')
+
+    # Today workouts assigned by coach (published)
     today_workouts = WorkoutAssignment.objects.filter(
         scheduled_date=today
-    ).filter(assignment_filter).distinct()
+    ).filter(assignment_filter).filter(published_filter).distinct()
 
-    # Upcoming workouts beyond tomorrow
+    # Upcoming workouts beyond tomorrow (published)
     upcoming_workouts = WorkoutAssignment.objects.filter(
         scheduled_date__gt=tomorrow,
         scheduled_date__lte=today + timedelta(days=7)
-    ).filter(assignment_filter).distinct().order_by('scheduled_date')
+    ).filter(assignment_filter).filter(published_filter).distinct().order_by('scheduled_date')
 
     # Submissions made by this runner
     submissions = WorkoutSubmission.objects.filter(runner=user).order_by('-created_at')
@@ -231,6 +241,7 @@ def dashboard_view(request):
     return render(request, 'club/dashboard.html', {
         'profile': profile,
         'next_day_workouts': next_day_workouts,
+        'upcoming_unreleased_tomorrow': upcoming_unreleased_tomorrow,
         'today_workouts': today_workouts,
         'upcoming_workouts': upcoming_workouts,
         'recent_submissions': recent_submissions,
@@ -252,6 +263,12 @@ def submit_workout_proof_view(request, assignment_id):
     Supports MULTIPLE proofs per workout with NO LIMIT.
     """
     assignment = get_object_or_404(WorkoutAssignment, id=assignment_id)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    # If workout details have not been released yet, prevent submission
+    if not assignment.is_published and not profile.is_coach:
+        messages.warning(request, f"Workout details for '{assignment.title}' have not been posted by the Coach yet.")
+        return redirect('dashboard')
     
     # Verify assignment is intended for this user, their group, or broadcast
     if assignment.runner and assignment.runner != request.user and not assignment.runners.filter(id=request.user.id).exists():

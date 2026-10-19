@@ -1,11 +1,21 @@
+databases:
+  - name: nnck-db
+    databaseName: nnck_club_db
+    user: nnck_admin
+    plan: free
+
 services:
   - type: web
     name: nnck-run-club
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn nnck_club.wsgi:application"
+    startCommand: "python manage.py migrate && python seed_initial_data.py && gunicorn nnck_club.wsgi:application"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nnck-db
+          property: connectionString
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: SECRET_KEY

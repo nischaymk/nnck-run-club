@@ -211,6 +211,18 @@
                     </div>
                     {% endfor %}
                 {% else %}
+                    {% if upcoming_unreleased_tomorrow %}
+                    <div class="text-center py-4 bg-dark rounded-3 border border-warning border-opacity-50 p-3">
+                        <i class="bi bi-clock-history text-warning display-5"></i>
+                        <h5 class="text-white mt-2 mb-1 fw-bold">Tomorrow's Workout Scheduled by Coach</h5>
+                        <p class="text-secondary small mb-3">
+                            Coach {{ upcoming_unreleased_tomorrow.0.coach.get_full_name|default:upcoming_unreleased_tomorrow.0.coach.username }} has scheduled your training session. Workout details and guidance will unlock at:
+                        </p>
+                        <span class="badge bg-warning text-dark fs-6 py-2 px-3 fw-bold shadow-sm">
+                            <i class="bi bi-alarm me-1"></i> {{ upcoming_unreleased_tomorrow.0.publish_at|date:"l, d M @ g:i A" }}
+                        </span>
+                    </div>
+                    {% else %}
                     <div class="text-center py-4 bg-dark rounded-3 border border-secondary">
                         <i class="bi bi-calendar-check text-secondary display-5"></i>
                         <h5 class="text-white mt-2">No Workout Assigned Yet for Tomorrow</h5>
@@ -219,6 +231,7 @@
                         <a href="{% url 'coach_assign_workout' %}" class="btn btn-sm btn-nnck-gradient">Upload Tomorrow's Workout Now</a>
                         {% endif %}
                     </div>
+                    {% endif %}
                 {% endif %}
             </div>
 

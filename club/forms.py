@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .models import UserProfile, WorkoutAssignment, WorkoutCategory, WorkoutSubmission
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 
 class RunnerRegistrationForm(forms.ModelForm):
@@ -97,6 +98,15 @@ class WorkoutAssignmentForm(forms.ModelForm):
         initial='all',
         widget=forms.HiddenInput()
     )
+    post_timing_mode = forms.ChoiceField(
+        choices=[
+            ('immediate', 'Post Immediately (Visible to athletes right away)'),
+            ('scheduled', 'Schedule Posting Time (Release details at specific date & time)'),
+        ],
+        required=False,
+        initial='immediate',
+        widget=forms.HiddenInput()
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,6 +129,9 @@ class WorkoutAssignmentForm(forms.ModelForm):
         self.fields['runner'].required = False
         self.fields['runner'].widget = forms.HiddenInput()
 
+        self.fields['publish_date'].required = False
+        self.fields['publish_time'].required = False
+
         tomorrow = date.today() + timedelta(days=1)
         self.fields['scheduled_date'].initial = tomorrow
 
@@ -132,6 +145,20 @@ class WorkoutAssignmentForm(forms.ModelForm):
                 self.fields['runners'].initial = [self.instance.runner.id]
             else:
                 self.fields['target_type'].initial = 'all'
+
+            if self.instance.publish_at:
+                local_pub = timezone.localtime(self.instance.publish_at)
+                self.fields['post_timing_mode'].initial = 'scheduled'
+                self.fields['publish_date'].initial = local_pub.date()
+                self.fields['publish_time'].initial = local_pub.strftime('%H:%M')
+            else:
+                self.fields['post_timing_mode'].initial = 'immediate'
+                self.fields['publish_date'].initial = self.instance.scheduled_date
+                self.fields['publish_time'].initial = '05:00'
+        else:
+            self.fields['post_timing_mode'].initial = 'immediate'
+            self.fields['publish_date'].initial = tomorrow
+            self.fields['publish_time'].initial = '05:00'
 
     def clean(self):
         cleaned_data = super().clean()
@@ -149,6 +176,29 @@ class WorkoutAssignmentForm(forms.ModelForm):
             cleaned_data['runners'] = []
             cleaned_data['runner'] = None
 
+        # Process post_timing_mode (immediate vs scheduled)
+        post_timing_mode = cleaned_data.get('post_timing_mode') or 'immediate'
+        publish_time = cleaned_data.get('publish_time')
+        publish_date = cleaned_data.get('publish_date')
+        scheduled_date = cleaned_data.get('scheduled_date')
+
+        if post_timing_mode == 'scheduled':
+            if not publish_time:
+                self.add_error('publish_time', 'Please specify the time when workout details should be posted to athletes.')
+            pub_date = publish_date or scheduled_date or date.today()
+            if publish_time:
+                current_tz = timezone.get_current_timezone()
+                pub_dt = datetime.combine(pub_date, publish_time)
+                if timezone.is_naive(pub_dt):
+                    pub_dt = timezone.make_aware(pub_dt, current_tz)
+                cleaned_data['publish_at'] = pub_dt
+                cleaned_data['publish_date'] = pub_date
+                cleaned_data['publish_time'] = publish_time
+        else:
+            cleaned_data['publish_at'] = None
+            cleaned_data['publish_date'] = None
+            cleaned_data['publish_time'] = None
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -163,6 +213,10 @@ class WorkoutAssignmentForm(forms.ModelForm):
                 instance.runner = None
         else:
             instance.runner = None
+
+        instance.publish_at = self.cleaned_data.get('publish_at')
+        instance.publish_date = self.cleaned_data.get('publish_date')
+        instance.publish_time = self.cleaned_data.get('publish_time')
 
         if commit:
             instance.save()
@@ -186,6 +240,7 @@ class WorkoutAssignmentForm(forms.ModelForm):
         model = WorkoutAssignment
         fields = [
             'runners', 'runner', 'category', 'title', 'scheduled_date',
+            'publish_date', 'publish_time',
             'target_distance', 'target_duration', 'target_pace',
             'intensity_level', 'description', 'notes'
         ]
@@ -193,6 +248,8 @@ class WorkoutAssignmentForm(forms.ModelForm):
             'category': forms.Select(attrs={'class': 'form-select bg-dark border-secondary text-white', 'style': 'font-size: 16px; min-height: 44px;'}),
             'title': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. Group A: 10K Progressive Tempo', 'style': 'font-size: 16px;'}),
             'scheduled_date': forms.DateInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'type': 'date', 'style': 'font-size: 16px; min-height: 44px;'}),
+            'publish_date': forms.DateInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'type': 'date', 'style': 'font-size: 16px; min-height: 44px;'}),
+            'publish_time': forms.TimeInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'type': 'time', 'style': 'font-size: 16px; min-height: 44px;'}),
             'target_distance': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. 5.0', 'step': '0.1', 'inputmode': 'decimal', 'style': 'font-size: 16px;'}),
             'target_duration': forms.NumberInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'minutes', 'step': '1', 'inputmode': 'numeric', 'style': 'font-size: 16px;'}),
             'target_pace': forms.TextInput(attrs={'class': 'form-control bg-dark border-secondary text-white', 'placeholder': 'e.g. 5:10/km', 'style': 'font-size: 16px;'}),

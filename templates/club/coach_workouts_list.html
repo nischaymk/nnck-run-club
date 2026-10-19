@@ -111,6 +111,15 @@
                             {% elif w.is_today %}
                                 <span class="badge bg-success text-light fw-bold">Today</span>
                             {% endif %}
+                            {% if not w.is_published %}
+                                <span class="badge bg-warning text-dark fw-bold shadow-sm">
+                                    <i class="bi bi-clock-history me-1"></i> Releases {{ w.publish_at|date:"D, d M @ g:i A" }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success border border-success">
+                                    <i class="bi bi-broadcast me-1"></i> Live to Runners
+                                </span>
+                            {% endif %}
                         </div>
 
                         <h4 class="text-white fw-bold mb-2">{{ w.title }}</h4>

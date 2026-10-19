@@ -99,14 +99,19 @@ DATABASES = {
     }
 }
 
-# If DATABASE_URL is provided in environment (e.g. Render Postgres), use it
+# If DATABASE_URL is provided in environment (e.g. Render Postgres, Neon, Supabase), use it
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
     try:
         import dj_database_url
-        DATABASES['default'] = dj_database_url.parse(database_url, conn_max_age=600)
-    except ImportError:
-        pass
+        DATABASES['default'] = dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True if 'RENDER' in os.environ or not DEBUG else False,
+        )
+    except Exception as e:
+        print(f"Warning: Failed to parse DATABASE_URL: {e}")
 
 
 # Password validation

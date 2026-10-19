@@ -106,6 +106,12 @@ class WorkoutAssignment(models.Model):
         ('max', 'Maximum / Intervals'),
     ], default='moderate')
     notes = models.TextField(blank=True, null=True, help_text="Coach's pre-run advice, hydration, warmup...")
+    
+    # Scheduled Release / Posting Time for workout details
+    publish_date = models.DateField(null=True, blank=True, help_text="Date when workout details become visible to runners")
+    publish_time = models.TimeField(null=True, blank=True, help_text="Time of day when workout details become visible to runners (e.g. 05:00 AM, 20:00)")
+    publish_at = models.DateTimeField(null=True, blank=True, db_index=True, help_text="Exact timestamp when workout details are released to runners. If null, posted immediately.")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -122,6 +128,21 @@ class WorkoutAssignment(models.Model):
     @property
     def is_today(self):
         return self.scheduled_date == date.today()
+
+    @property
+    def is_published(self):
+        """Returns True if this workout is already released to runners."""
+        if not self.publish_at:
+            return True
+        return timezone.now() >= self.publish_at
+
+    @property
+    def publish_status_display(self):
+        """Human-readable publication status for badges."""
+        if self.is_published:
+            return "Live to Runners"
+        local_dt = timezone.localtime(self.publish_at)
+        return f"Scheduled for {local_dt.strftime('%d %b, %I:%M %p')}"
 
 
 class WorkoutSubmission(models.Model):
