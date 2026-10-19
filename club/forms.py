@@ -294,17 +294,21 @@ class WorkoutSubmissionForm(forms.ModelForm):
 
 
 class StyledPasswordResetForm(forms.Form):
-    """Clean, high-contrast dark-mode password reset request form"""
-    email = forms.EmailField(
-        label="Registered Email",
+    """Clean, high-contrast dark-mode password reset request form (accepts email or username)"""
+    entry = forms.CharField(
+        label="Registered Email or Username",
         max_length=254,
-        widget=forms.EmailInput(attrs={
+        required=True,
+        widget=forms.TextInput(attrs={
             'class': 'form-control bg-dark border-secondary text-white',
-            'placeholder': 'Enter your registered email (e.g. runner@example.com)',
-            'autocomplete': 'email',
+            'placeholder': 'Enter your registered email or username',
+            'autocomplete': 'username email',
             'autofocus': 'autofocus'
         })
     )
+
+    def clean_entry(self):
+        return self.cleaned_data.get('entry', '').strip()
 
 
 class StyledSetPasswordForm(forms.Form):

@@ -255,6 +255,9 @@
                     <a href="{% url 'coach_assign_workout' %}?runner_id={{ r.id }}" class="btn btn-sm btn-nnck-gradient flex-grow-1 text-center py-1 fw-bold">
                         <i class="bi bi-plus-circle me-1"></i> Upload Workout
                     </a>
+                    <a href="/admin/auth/user/{{ r.id }}/password/" target="_blank" class="btn btn-sm btn-outline-secondary text-light py-1 px-2" title="Reset password in Admin Portal">
+                        <i class="bi bi-key-fill text-warning"></i>
+                    </a>
                 </div>
             </div>
             {% empty %}
@@ -312,6 +315,9 @@
                                 </a>
                                 <a href="{% url 'coach_assign_workout' %}?runner_id={{ r.id }}" class="btn btn-sm btn-nnck-gradient py-1 px-2">
                                     <i class="bi bi-plus-circle me-1"></i> Upload Workout
+                                </a>
+                                <a href="/admin/auth/user/{{ r.id }}/password/" target="_blank" class="btn btn-sm btn-outline-secondary text-light py-1 px-2" title="Reset password in Admin Portal">
+                                    <i class="bi bi-key-fill text-warning me-1"></i> Reset Password
                                 </a>
                             </div>
                         </td>

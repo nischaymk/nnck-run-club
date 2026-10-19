@@ -14,6 +14,9 @@ from django.urls import reverse
 from django.conf import settings
 from datetime import date, timedelta, datetime
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import UserProfile, WorkoutAssignment, WorkoutCategory, WorkoutSubmission, ProofScreenshot
 from .forms import (
@@ -24,45 +27,79 @@ from .forms import (
 
 
 def password_reset_request_view(request):
-    """Handles requesting a password reset email."""
+    """Handles requesting a password reset email using registered email or username."""
     if request.user.is_authenticated:
         return redirect('dashboard')
         
     if request.method == 'POST':
         form = StyledPasswordResetForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            associated_users = User.objects.filter(email__iexact=email, is_active=True)
+            query = form.cleaned_data['entry'].strip()
+            associated_users = User.objects.filter(
+                Q(email__iexact=query) | Q(username__iexact=query),
+                is_active=True
+            )
+            
+            if not associated_users.exists():
+                messages.error(
+                    request,
+                    f"No active account found for '{query}'. Please check your spelling or contact Coach Chandrakanth."
+                )
+                return render(request, 'club/password_reset.html', {'form': form})
+            
             dev_reset_url = None
+            email_sent_count = 0
             
             for user in associated_users:
+                if not user.email:
+                    messages.warning(
+                        request,
+                        f"Account '{user.username}' does not have an email address on file. Please contact Coach Chandrakanth directly to reset your password."
+                    )
+                    continue
+
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 reset_url = request.build_absolute_uri(
                     reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
                 )
+                # Ensure HTTPS on Render/production
+                if not request.is_secure() and ('onrender.com' in request.get_host() or not settings.DEBUG):
+                    reset_url = reset_url.replace('http://', 'https://')
                 
                 context = {
                     'user': user,
                     'reset_url': reset_url,
                     'domain': request.get_host(),
-                    'protocol': 'https' if request.is_secure() else 'http',
+                    'protocol': 'https' if request.is_secure() or 'onrender.com' in request.get_host() else 'http',
                 }
                 subject = "[NNCK RUN CLUB] Password Reset Request"
-                message = render_to_string('club/password_reset_email.html', context)
+                plain_message = render_to_string('club/password_reset_email.html', context)
+                html_message = render_to_string('club/password_reset_email_html.html', context)
                 
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nnckrunclub.com'),
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
+                # Output to server logs so admins can retrieve link if needed
+                print(f"[NNCK PASSWORD RESET] User: {user.username} ({user.email}) -> {reset_url}", flush=True)
                 
-                if settings.DEBUG and not dev_reset_url:
+                try:
+                    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', 'noreply@nnckrunclub.com')
+                    send_mail(
+                        subject=subject,
+                        message=plain_message,
+                        from_email=from_email,
+                        recipient_list=[user.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                    email_sent_count += 1
+                except Exception as e:
+                    logger.error(f"Error sending password reset email to {user.email}: {e}")
+
+                # If console backend is active (no SMTP configured or dev), provide direct testing link
+                is_console_backend = 'console.EmailBackend' in getattr(settings, 'EMAIL_BACKEND', '')
+                if (settings.DEBUG or is_console_backend) and not dev_reset_url:
                     dev_reset_url = reset_url
                     
-            if settings.DEBUG and dev_reset_url:
+            if dev_reset_url:
                 request.session['dev_password_reset_url'] = dev_reset_url
                 
             return redirect('password_reset_done')
@@ -73,9 +110,13 @@ def password_reset_request_view(request):
 
 
 def password_reset_done_view(request):
-    """Informs the user that password reset instructions were sent."""
-    dev_reset_url = request.session.pop('dev_password_reset_url', None) if settings.DEBUG else None
-    return render(request, 'club/password_reset_done.html', {'dev_reset_url': dev_reset_url})
+    """Informs the user that password reset instructions were processed."""
+    dev_reset_url = request.session.pop('dev_password_reset_url', None)
+    is_smtp_active = 'smtp.EmailBackend' in getattr(settings, 'EMAIL_BACKEND', '')
+    return render(request, 'club/password_reset_done.html', {
+        'dev_reset_url': dev_reset_url,
+        'is_smtp_active': is_smtp_active,
+    })
 
 
 def password_reset_confirm_view(request, uidb64, token):
